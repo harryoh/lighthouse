@@ -1,0 +1,16 @@
+{
+  "name": "ai-dev-starter",
+  "version": "1.0.0",
+  "description": "AI-powered development starter template with Task Master AI and IDE integration",
+  "keywords": [
+    "ai",
+    "development",
+    "template",
+    "starter",
+    "task-master",
+    "claude",
+    "cursor"
+  ],
+  "author": "",
+  "license": "MIT"
+}

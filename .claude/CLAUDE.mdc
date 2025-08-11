@@ -1,0 +1,231 @@
+---
+alwaysApply: true
+---
+
+# CLAUDE.md
+
+## Core Development Principles
+
+### Planning Phase
+- Thoroughly analyze requirements and review existing codebase before implementation
+- Validate approach with the development team before starting
+- Prioritize minimal, incremental changes over complex refactoring
+- Document architectural decisions and trade-offs
+
+### Code Style & Standards
+- **TypeScript**: Enforce strict mode with comprehensive type definitions
+- **Consistency**: Follow established patterns and conventions in the codebase
+- **Single Responsibility**: Keep functions small and focused on one task
+- **Async Operations**: Use async/await consistently for all asynchronous code
+- **Documentation**: All code, comments, and documentation must be in English
+- **Naming Conventions**: Use descriptive, self-documenting variable and function names
+
+### Database Operations
+- **ORM Usage**: Exclusively use Prisma for database interactions - no raw SQL
+- **Transactions**: Wrap multi-record modifications in database transactions
+- **Error Handling**: Implement comprehensive error handling with meaningful messages
+- **Migrations**: Use Prisma migrations for schema changes
+- **Query Optimization**: Consider query performance and use appropriate indexes
+
+### Security Best Practices
+- **Data Protection**: Never expose sensitive information in logs, responses, or error messages
+- **Password Security**: Hash all passwords using bcrypt with appropriate salt rounds
+- **Authentication**: Implement JWT-based authentication with proper expiration
+- **Input Validation**: Validate and sanitize all user inputs before processing
+- **Rate Limiting**: Implement rate limiting for API endpoints
+- **CORS**: Configure CORS policies appropriately for production
+
+### Testing Strategy
+- **Initial Implementation**: Create minimal test files with basic smoke tests
+- **Comprehensive Testing**: Implement full test coverage only when explicitly requested
+- **Test Coverage Requirements** (when requested):
+ - Unit tests for business logic
+ - Integration tests for API endpoints
+ - Test both success and failure scenarios
+ - Mock external dependencies (database, blockchain services, AWS services)
+ - Use Jest for unit tests and Supertest for API testing
+ - Maintain minimum 80% code coverage
+
+### Local Development Environment
+- **Container Orchestration**: Use docker-compose for local service management
+- **AWS Services**: Replace AWS services with LocalStack for local development
+- **Environment Configuration**:
+ - Use `AWS_ENDPOINT` environment variable for LocalStack integration
+ - Default credentials: AccessKey and SecretKey set to "test"
+ - No additional AWS environment variables required
+- **File Organization**: Store all Docker-related files in `/docker` directory
+
+### Code Quality Assurance
+**MANDATORY**: Execute these commands after any code modification:# CLAUDE.md
+
+## Core Development Principles
+
+### Planning Phase
+- Thoroughly analyze requirements and review existing codebase before implementation
+- Validate approach with the development team before starting
+- Prioritize minimal, incremental changes over complex refactoring
+- Document architectural decisions and trade-offs
+
+### Code Style & Standards
+- **TypeScript**: Enforce strict mode with comprehensive type definitions
+- **Consistency**: Follow established patterns and conventions in the codebase
+- **Single Responsibility**: Keep functions small and focused on one task
+- **Async Operations**: Use async/await consistently for all asynchronous code
+- **Documentation**: All code, comments, and documentation must be in English
+- **Naming Conventions**: Use descriptive, self-documenting variable and function names
+
+### Database Operations
+- **ORM Usage**: Exclusively use Prisma for database interactions - no raw SQL
+- **Transactions**: Wrap multi-record modifications in database transactions
+- **Error Handling**: Implement comprehensive error handling with meaningful messages
+- **Migrations**: Use Prisma migrations for schema changes
+- **Query Optimization**: Consider query performance and use appropriate indexes
+- **Database Connection**:
+ - Never hardcode `DATABASE_URL` directly
+ - Construct connection string using environment variables:
+   - `MYSQL_HOST`: Database host address
+   - `MYSQL_PORT`: Database port number
+   - `MYSQL_DBNAME`: Database name
+   - `MYSQL_USERNAME`: Database username
+   - `MYSQL_PASSWORD`: Database password
+ - Example connection string construction:
+   ```javascript
+   DATABASE_URL = `mysql://${MYSQL_USERNAME}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DBNAME}`
+   ```
+
+### Security Best Practices
+- **Data Protection**: Never expose sensitive information in logs, responses, or error messages
+- **Password Security**: Hash all passwords using bcrypt with appropriate salt rounds
+- **Authentication**: Implement JWT-based authentication with proper expiration
+- **Input Validation**: Validate and sanitize all user inputs before processing
+- **Rate Limiting**: Implement rate limiting for API endpoints
+- **CORS**: Configure CORS policies appropriately for production
+
+### Testing Strategy
+- **Initial Implementation**: Create minimal test files with basic smoke tests
+- **Comprehensive Testing**: Implement full test coverage only when explicitly requested
+- **Test Coverage Requirements** (when requested):
+ - Unit tests for business logic
+ - Integration tests for API endpoints
+ - Test both success and failure scenarios
+ - Mock external dependencies (database, blockchain services, AWS services)
+ - Use Jest for unit tests and Supertest for API testing
+ - Maintain minimum 80% code coverage
+
+### Local Development Environment
+- **Container Orchestration**: Use docker-compose for local service management
+- **AWS Services**: Replace AWS services with LocalStack for local development
+- **Environment Configuration**:
+ - Use `AWS_ENDPOINT` environment variable for LocalStack integration
+ - Default credentials: AccessKey and SecretKey set to "test"
+ - No additional AWS environment variables required
+- **File Organization**: Store all Docker-related files in `/docker` directory
+
+### Code Quality Assurance
+**MANDATORY**: Execute these commands after any code modification:
+
+```
+pnpm run lint        # Enforce code style rules
+pnpm run typecheck   # Validate TypeScript types
+pnpm run format      # Apply code formatting standards
+pnpm run depcheck    # Identify unused dependencies
+```
+
+## Project Commands Reference
+
+### Development Workflow
+
+```
+pnpm run test        # Execute test suite for all packages
+pnpm run dev         # Start development server with hot reload
+pnpm run build       # Build all packages for production
+pnpm run serve       # Start production server
+```
+
+### Docker Operations
+
+#### Service Initialization
+
+```
+# Initialize LocalStack services
+./docker/scripts/init-localstack.sh
+
+# Database initialization files location
+# Place SQL initialization scripts in: ./docker/init.db/<database_name>.sql
+# These scripts execute automatically when MySQL container starts
+```
+
+#### Container Management
+
+```
+# Start all services (MySQL, LocalStack, SQS Admin UI)
+docker-compose -f docker/docker-compose.yaml up -d
+
+# View service logs
+docker-compose -f docker/docker-compose.yaml logs -f
+
+# Stop all services
+docker-compose -f docker/docker-compose.yaml down
+
+# Reset environment (remove volumes)
+docker-compose -f docker/docker-compose.yaml down -v
+```
+
+## Additional Guidelines
+
+### Performance Optimization
+- Implement caching strategies where appropriate
+- Use pagination for large datasets
+- Optimize database queries and indexes
+- Monitor and log performance metrics
+
+### Error Handling
+- Use custom error classes for different error types
+- Implement global error handling middleware
+- Log errors with appropriate context and stack traces
+- Return consistent error response formats
+
+### API Design
+- Follow RESTful principles for API endpoints
+- Use appropriate HTTP status codes
+- Implement API versioning strategy
+- Document APIs using OpenAPI/Swagger specifications
+
+### Monitoring & Logging
+- Implement structured logging with appropriate log levels
+- Include correlation IDs for request tracing
+- Monitor application health metrics
+- Set up alerts for critical errors
+
+### Deployment Checklist
+- [ ] Run all code quality checks
+- [ ] Execute full test suite
+- [ ] Update environment variables
+- [ ] Review database migrations
+- [ ] Update API documentation
+- [ ] Verify Docker configurations
+- [ ] Check security configurations
+- [ ] Review monitoring alerts
+
+### Troubleshooting Guide
+
+#### Common Issues
+1. **LocalStack Connection Issues**
+   - Verify `AWS_ENDPOINT` is correctly set
+   - Check LocalStack container is running
+   - Confirm port mappings in docker-compose
+
+2. **Database Connection Errors**
+   - Verify database container is running
+   - Check connection string in `.env`
+   - Confirm database initialization scripts executed
+
+3. **TypeScript Compilation Errors**
+   - Run `pnpm run typecheck` to identify issues
+   - Ensure all dependencies are installed
+   - Check for missing type definitions
+
+4. **Test Failures**
+   - Verify test database is properly initialized
+   - Check mock configurations
+   - Review test environment variables

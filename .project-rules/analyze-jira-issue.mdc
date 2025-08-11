@@ -1,0 +1,60 @@
+# Analyze Jira Issue
+
+Fetch Jira issue details and create a comprehensive implementation specification.
+
+## Template Sections:
+
+### 1. Issue Summary
+Brief overview of the Jira ticket including issue key and type
+
+### 2. Problem Statement
+Clear definition of what needs to be solved based on issue description
+
+### 3. Acceptance Criteria
+Requirements from Jira ticket that must be met
+
+### 4. Technical Approach
+High-level solution approach and architecture decisions
+
+### 5. Implementation Plan
+Step-by-step breakdown of implementation tasks with subtasks
+
+### 6. Test Plan
+Testing strategy and test cases aligned with acceptance criteria
+
+### 7. Files to Modify
+List of existing files that need changes
+
+### 8. Files to Create
+New files that need to be created
+
+### 9. Existing Utilities to Leverage
+Project utilities/helpers that can be reused
+
+### 10. Dependencies & Blockers
+Related Jira issues, dependencies, or potential blockers
+
+### 11. Success Criteria
+Measurable criteria for marking issue as Done
+
+### 12. Out of Scope
+What won't be addressed in this implementation
+
+## Process:
+1. Fetch issue details using Atlassian tools (`getJiraIssue`)
+2. Review linked issues and epic context
+3. Analyze acceptance criteria and definition of done
+4. Review related code and project structure
+5. Create detailed technical specification
+6. Follow strict TDD principles, KISS approach
+7. Enforce 300-line file limit where applicable
+8. Map implementation to Jira workflow transitions
+9. Output the full technical specification for review
+10. Update Jira ticket with technical notes if needed
+
+## Jira Integration Points:
+- Link related issues
+- Update story points estimation
+- Add technical comments
+- Create subtasks for implementation steps
+- Transition issue status appropriately

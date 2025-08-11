@@ -1,0 +1,91 @@
+# Init Project
+
+Automatically initialize a new project from the AI Dev Starter template.
+
+## Usage:
+`/init-project <project-name>`
+
+## Process:
+
+### 1. Update Project Metadata
+- Update package.json with project name
+- Set appropriate description
+- Clear author field for user to fill
+
+### 2. Initialize Git Repository
+```bash
+git init
+git add .
+git commit -m "🚀 Initial commit from AI Dev Starter template"
+```
+
+### 3. Initialize Task Master (Claude Code only)
+If in Claude Code environment:
+```bash
+npx task-master init --yes
+```
+
+### 4. Clean Template References
+- Remove template-specific documentation
+- Update README.md title with project name
+- Clear any example PRD files
+
+### 5. Create Initial Structure
+Based on project type, create appropriate directories:
+- Single project: `src/`, `tests/`, `docs/`
+- Monorepo: `packages/`, `apps/`, `libs/`
+- API project: `api/`, `models/`, `controllers/`
+
+### 6. Generate Initial PRD Template
+Create a blank PRD template in `.taskmaster/docs/prd.txt`:
+```markdown
+# Project Requirements Document
+
+## Project: [PROJECT_NAME]
+## Date: [CURRENT_DATE]
+
+## Overview
+[Describe the project purpose and goals]
+
+## Core Features
+1. [Feature 1]
+2. [Feature 2]
+3. [Feature 3]
+
+## Technical Requirements
+- [Requirement 1]
+- [Requirement 2]
+
+## Success Criteria
+- [Criterion 1]
+- [Criterion 2]
+```
+
+### 7. Configure IDE Settings
+- Verify `.claude/` settings are intact
+- Ensure `.cursorrules` is properly linked
+- Check MCP server configuration
+
+### 8. Final Steps
+```bash
+# Display success message
+echo "✅ Project initialized successfully!"
+echo "📝 Next steps:"
+echo "  1. Edit .taskmaster/docs/prd.txt with your requirements"
+echo "  2. Run 'npx task-master parse-prd .taskmaster/docs/prd.txt' in Claude Code"
+echo "  3. Start development with 'claude' or 'cursor .'"
+```
+
+## Parameters:
+- `<project-name>`: Name for the new project (kebab-case recommended)
+
+## Examples:
+- `/init-project my-awesome-app`
+- `/init-project user-management-api`
+- `/init-project react-component-library`
+
+## Notes:
+- Automatically detects IDE environment (Claude Code vs Cursor)
+- Preserves all automation rules and configurations
+- Creates appropriate .gitignore if not present
+- Suggests next steps based on detected project type

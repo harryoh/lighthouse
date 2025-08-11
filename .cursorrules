@@ -1,0 +1,78 @@
+# AI Dev Starter - Cursor IDE Rules
+
+# Development Rules
+# Import development configurations and automation rules
+@./.claude/CLAUDE.mdc
+
+# Project-Specific Rules
+# Import all project automation rules
+@./.project-rules/add-to-changelog.mdc
+@./.project-rules/analyze-jira-issue.mdc
+@./.project-rules/check.mdc
+@./.project-rules/clean.mdc
+@./.project-rules/code-analysis.mdc
+@./.project-rules/commit.mdc
+@./.project-rules/context-prime.mdc
+@./.project-rules/continuous-improvement.mdc
+@./.project-rules/create-command.mdc
+@./.project-rules/create-docs.mdc
+@./.project-rules/five.mdc
+@./.project-rules/implement-task.mdc
+@./.project-rules/mcp-inspector-debugging.mdc
+@./.project-rules/mermaid.mdc
+@./.project-rules/pr-review.mdc
+@./.project-rules/update-docs.mdc
+@./.project-rules/init-project.mdc
+
+## Core Development Principles
+
+### Code Quality
+- Use TypeScript strict mode
+- Functions follow single responsibility principle
+- Use async/await for asynchronous operations
+- All code and comments in English
+
+### Database
+- Exclusively use Prisma ORM (no raw SQL)
+- Use transactions for multi-record modifications
+- Implement meaningful error messages
+
+### Security
+- Never expose sensitive information in logs/responses
+- Hash all passwords with bcrypt
+- Implement JWT-based authentication
+- Validate and sanitize all user inputs
+
+### Testing
+- Create basic smoke tests on initial implementation
+- Implement full test coverage only when requested
+- Use Jest and Supertest
+
+### Local Development
+- Manage services with docker-compose
+- Replace AWS services with LocalStack
+- Store Docker files in /docker directory
+
+### Required Commands
+Run after code modifications based on project type:
+```bash
+# Node.js projects
+npm run lint         # Code style validation
+npm run typecheck    # TypeScript type checking
+npm run format       # Code formatting
+
+# Python projects
+black .             # Code formatting
+flake8 .            # Linting
+mypy .              # Type checking
+```
+
+## Language Settings
+- Response language: English
+- Code/Comments: English
+
+## Project Structure
+Supports flexible project structures:
+- Single project: src/, tests/, docs/
+- Monorepo: packages/, apps/, libs/
+- Custom structure: Adjust to project needs
