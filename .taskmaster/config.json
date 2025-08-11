@@ -2,19 +2,19 @@
   "models": {
     "main": {
       "provider": "anthropic",
-      "modelId": "claude-3-5-sonnet-20241022",
+      "modelId": "claude-3-7-sonnet-20250219",
       "maxTokens": 120000,
       "temperature": 0.2
     },
     "research": {
-      "provider": "perplexity",
-      "modelId": "sonar-pro",
-      "maxTokens": 8700,
+      "provider": "claude-code",
+      "modelId": "opus",
+      "maxTokens": 32000,
       "temperature": 0.1
     },
     "fallback": {
       "provider": "anthropic",
-      "modelId": "claude-3-5-sonnet-20241022",
+      "modelId": "claude-3-7-sonnet-20250219",
       "maxTokens": 120000,
       "temperature": 0.2
     }
@@ -30,7 +30,8 @@
     "bedrockBaseURL": "https://bedrock.us-east-1.amazonaws.com",
     "responseLanguage": "English",
     "defaultTag": "master",
-    "azureOpenaiBaseURL": "https://your-endpoint.openai.azure.com/"
+    "azureOpenaiBaseURL": "https://your-endpoint.openai.azure.com/",
+    "userId": "1234567890"
   },
   "claudeCode": {}
 }
