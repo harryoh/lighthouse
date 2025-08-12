@@ -17,7 +17,7 @@
             "description": "Set up the base project structure using Nx monorepo with pnpm workspace management and configure TypeScript with strict mode for type safety",
             "dependencies": [],
             "details": "1. Run 'npx create-nx-workspace@latest lighthouse --preset=ts --packageManager=pnpm --nx-cloud=false' to initialize Nx workspace\n2. Configure root tsconfig.base.json with strict mode settings: strict: true, noImplicitAny: true, strictNullChecks: true, strictFunctionTypes: true\n3. Setup workspace structure with apps/ and libs/ directories\n4. Create initial packages: @lighthouse/crawler-core, @lighthouse/database, @lighthouse/api\n5. Configure pnpm-workspace.yaml to include all packages\n6. Add common dependencies: typescript@5.x, @types/node, tsx for development\n7. Setup .nvmrc with Node 20.x and engines field in package.json",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify workspace builds successfully with 'pnpm nx run-many --target=build --all', ensure TypeScript compilation works with strict mode, validate pnpm workspace resolution"
           },
           {
@@ -33,10 +33,7 @@
             "id": 3,
             "title": "Design and Implement Prisma Database Schema",
             "description": "Create comprehensive Prisma schema defining all core entities with proper relationships, data types, indexes, and constraints for optimal query performance",
-            "dependencies": [
-              "1.1",
-              "1.2"
-            ],
+            "dependencies": ["1.1", "1.2"],
             "details": "1. Install Prisma: pnpm add -D prisma @prisma/client\n2. Initialize Prisma: npx prisma init --datasource-provider mysql\n3. Create schema in prisma/schema.prisma:\n   - Source model: id (uuid), name, url, type (enum: NEWS, BLOG, SOCIAL), config (Json), status (enum: ACTIVE, PAUSED, ERROR), createdAt, updatedAt\n   - Content model: id (uuid), sourceId (FK), url (unique), title, body (Text), author, publishedAt, rawHtml (Text), contentHash (for dedup), createdAt\n   - Analysis model: id (uuid), contentId (FK), type (enum: SENTIMENT, KEYWORD, SUMMARY), result (Json), score (Float), analyzedAt\n   - User model: id (uuid), email (unique), passwordHash, role (enum: ADMIN, USER), createdAt\n   - Job model: id (uuid), sourceId (FK), type (enum: CRAWL, ANALYSIS), status (enum: PENDING, RUNNING, COMPLETED, FAILED), payload (Json), error (Text?), startedAt, completedAt\n4. Add composite indexes: @@index([sourceId, publishedAt]), @@index([status, type]) on Job\n5. Configure cascade deletes for Content->Analysis relationship",
             "status": "pending",
             "testStrategy": "Run 'npx prisma migrate dev' successfully, verify foreign key constraints work, test CRUD operations using Prisma Client, check query performance with EXPLAIN"
@@ -45,9 +42,7 @@
             "id": 4,
             "title": "Setup Environment Configuration and Prisma Client",
             "description": "Implement robust environment variable management, create Prisma client singleton, and setup database connection pooling with proper error handling",
-            "dependencies": [
-              "1.3"
-            ],
+            "dependencies": ["1.3"],
             "details": "1. Install dotenv and zod for env validation: pnpm add dotenv zod\n2. Create libs/database/src/config/env.ts with Zod schema:\n   - Define all required env vars with types and defaults\n   - Add validation for DATABASE_URL format\n   - Export typed env object\n3. Create libs/database/src/prisma.ts with singleton pattern:\n   - Initialize PrismaClient with connection pool settings\n   - Add query logging in development\n   - Implement graceful shutdown handling\n   - Export typed Prisma client instance\n4. Create .env.local with actual values (gitignored)\n5. Setup libs/database/src/index.ts as main export\n6. Add database connection health check endpoint\n7. Create seed script in prisma/seed.ts for initial data\n8. Add npm scripts: 'db:migrate', 'db:seed', 'db:studio'",
             "status": "pending",
             "testStrategy": "Test environment validation with missing/invalid values, verify Prisma client connects successfully, test connection pooling under load, ensure graceful shutdown works"
@@ -56,9 +51,7 @@
             "id": 5,
             "title": "Create Database Migration and Seed Data",
             "description": "Generate initial database migration, create seed data for development/testing, and setup migration workflow for team collaboration",
-            "dependencies": [
-              "1.4"
-            ],
+            "dependencies": ["1.4"],
             "details": "1. Generate initial migration: npx prisma migrate dev --name init\n2. Create comprehensive seed script (prisma/seed.ts):\n   - Create admin user with hashed password (using bcrypt)\n   - Add 3 sample sources (Korean news sites)\n   - Insert 10 sample contents with varied dates\n   - Add sample analysis results\n   - Create pending and completed job records\n3. Configure package.json prisma.seed command\n4. Run seeding: npx prisma db seed\n5. Create migration README with team guidelines:\n   - How to create new migrations\n   - Naming conventions\n   - Testing requirements before commit\n6. Setup GitHub Actions workflow for migration validation\n7. Create database backup script for production migrations\n8. Document rollback procedures",
             "status": "pending",
             "testStrategy": "Verify migration applies cleanly to fresh database, test seed script idempotency, validate foreign key constraints work correctly, ensure migrations are reversible"
@@ -72,9 +65,7 @@
         "details": "1. Create BaseCrawler abstract class with:\n   - Constructor accepting source configuration\n   - Abstract methods: parseContent(), validateResponse()\n   - Rate limiting with configurable delays\n   - Exponential backoff retry mechanism\n   - User-Agent rotation\n   - Proxy support preparation\n2. Implement common utilities:\n   - HTML fetching with axios/playwright\n   - Response validation\n   - Error logging and monitoring\n   - Job status updates\n3. Create CrawlerFactory for instantiating specific crawlers\n4. Implement queue management with Redis/BullMQ",
         "testStrategy": "1. Unit test rate limiting behavior\n2. Test retry logic with mock failures\n3. Verify error handling and logging\n4. Test job status transitions\n5. Integration test with mock HTTP server",
         "priority": "high",
-        "dependencies": [
-          1
-        ],
+        "dependencies": [1],
         "status": "pending",
         "subtasks": [
           {
@@ -90,9 +81,7 @@
             "id": 2,
             "title": "Implement Rate Limiting and Request Management",
             "description": "Add rate limiting mechanism, user-agent rotation, and HTTP request handling with proper headers and proxy support preparation to the BaseCrawler class",
-            "dependencies": [
-              "2.1"
-            ],
+            "dependencies": ["2.1"],
             "details": "Implement in BaseCrawler: 1) Rate limiter using bottleneck library with configurable minTime between requests (default 1000ms) 2) User-agent rotation from predefined list of 10+ real browser agents 3) fetchPage() method with axios configuration for headers, timeout (30s), proxy support structure 4) Request interceptor for adding random user-agent 5) Response interceptor for logging and metrics 6) Add proxy configuration interface for future implementation",
             "status": "pending",
             "testStrategy": "Test rate limiting with multiple rapid requests, verify user-agent rotation, mock axios to test request configuration, measure request timing"
@@ -101,9 +90,7 @@
             "id": 3,
             "title": "Implement Retry Logic and Error Handling",
             "description": "Build robust error handling with exponential backoff retry mechanism and comprehensive error logging for different failure scenarios",
-            "dependencies": [
-              "2.2"
-            ],
+            "dependencies": ["2.2"],
             "details": "Add to BaseCrawler: 1) Exponential backoff retry with axios-retry: max 3 retries, delays of 1s, 2s, 4s 2) Error classification: NetworkError, ParseError, RateLimitError, ValidationError custom classes 3) handleError() method with error type detection and appropriate actions 4) Retry only on 5xx errors and network timeouts 5) Error logging with winston: timestamp, url, error type, stack trace 6) Circuit breaker pattern preparation with failure threshold tracking",
             "status": "pending",
             "testStrategy": "Test retry on 503 errors, verify exponential backoff timing, test different error types handling, validate error logging format"
@@ -112,9 +99,7 @@
             "id": 4,
             "title": "Create CrawlerFactory and Registry System",
             "description": "Implement factory pattern for creating specific crawler instances based on source configuration and maintain a registry of available crawler types",
-            "dependencies": [
-              "2.1"
-            ],
+            "dependencies": ["2.1"],
             "details": "Create src/crawlers/CrawlerFactory.ts: 1) CrawlerRegistry Map<string, typeof BaseCrawler> for crawler type registration 2) registerCrawler(type: string, crawlerClass: typeof BaseCrawler) method 3) createCrawler(source: SourceConfig): BaseCrawler factory method 4) Validation of crawler type existence 5) Dependency injection setup for passing services (logger, metrics, queue) 6) Auto-registration decorator @RegisterCrawler for future crawlers 7) Export singleton factory instance",
             "status": "pending",
             "testStrategy": "Test crawler registration and retrieval, verify factory creates correct crawler type, test error on unknown type, validate dependency injection"
@@ -123,10 +108,7 @@
             "id": 5,
             "title": "Implement Queue Management Integration",
             "description": "Integrate BullMQ for job queue management, implementing job status updates, progress tracking, and queue event handlers in the BaseCrawler",
-            "dependencies": [
-              "2.1",
-              "2.3"
-            ],
+            "dependencies": ["2.1", "2.3"],
             "details": "Add queue integration: 1) Create CrawlJob interface with url, sourceId, priority, attempts properties 2) Implement updateJobStatus() method for pending/processing/completed/failed states 3) Add job progress updates during crawling phases (fetch/parse/store) 4) Create QueueService wrapper for BullMQ with methods: addJob(), getJob(), updateProgress() 5) Implement job event handlers in BaseCrawler: onComplete(), onFailed(), onProgress() 6) Add Redis connection configuration 7) Implement job retry through queue instead of internal retry for better visibility",
             "status": "pending",
             "testStrategy": "Test job creation and status updates, verify progress tracking, test queue event handlers, validate Redis connection and job persistence"
@@ -140,9 +122,7 @@
         "details": "1. Extend BaseCrawler for NewsCrawler class\n2. Implement parseContent() for news articles:\n   - Extract title, body, author, published date\n   - Handle various date formats\n   - Clean HTML tags while preserving structure\n   - Extract images and captions\n3. Implement article list pagination\n4. Handle dynamic content with Playwright if needed\n5. Add news-specific validations\n6. Configure for target news site (e.g., Naver News, Daum News)\n7. Implement robots.txt compliance checking",
         "testStrategy": "1. Test extraction accuracy on 100+ sample articles\n2. Verify 95%+ parsing success rate\n3. Test pagination and article discovery\n4. Validate date parsing across formats\n5. Test with real news site in development environment",
         "priority": "high",
-        "dependencies": [
-          2
-        ],
+        "dependencies": [2],
         "status": "pending",
         "subtasks": [
           {
@@ -158,9 +138,7 @@
             "id": 2,
             "title": "Implement Article Content Parser with Korean Language Support",
             "description": "Build the parseContent() method to extract and clean article data from HTML, handling Korean text and various date formats commonly used in Korean news sites",
-            "dependencies": [
-              "3.1"
-            ],
+            "dependencies": ["3.1"],
             "details": "Implement parseContent() method using cheerio for HTML parsing. Extract title using configured selector with fallback to meta tags (og:title, twitter:title). Parse article body by combining text from configured content selectors, removing ads/scripts/style tags. Handle Korean date formats (2024년 1월 1일, 2024-01-01, 2024/01/01) using date-fns with ko locale. Extract author from byline, meta tags, or JSON-LD structured data. Capture all images with src, alt text, and adjacent captions. Implement HTML cleaning while preserving paragraph structure for readability. Add content validation to ensure minimum length (100 chars) and required fields.",
             "status": "pending",
             "testStrategy": "Test with 50+ real Korean news article HTML samples. Verify correct extraction of all fields including edge cases. Test date parsing with 10+ different Korean date formats. Validate HTML cleaning preserves Korean text properly."
@@ -169,9 +147,7 @@
             "id": 3,
             "title": "Add Article List Discovery and Pagination Logic",
             "description": "Implement functionality to discover article links from news category/section pages and handle pagination for comprehensive article collection",
-            "dependencies": [
-              "3.1"
-            ],
+            "dependencies": ["3.1"],
             "details": "Create discoverArticles() method to find article URLs from list pages. Implement pagination detection for common patterns: numbered pages (?page=N), infinite scroll markers, 'next' button selectors. Extract article URLs using configured link selectors with URL validation. Filter URLs to include only article pages (exclude ads, external links). Implement depth-limited crawling (max 10 pages by default) to prevent infinite loops. Store discovered URLs in Set to prevent duplicates. Add support for both static pagination and dynamic loading detection. Create method to identify and follow category/section links for broader coverage.",
             "status": "pending",
             "testStrategy": "Test pagination with mock HTML containing various pagination styles. Verify URL extraction accuracy and deduplication. Test depth limiting to ensure crawling stops appropriately. Validate against real news site pagination patterns."
@@ -180,10 +156,7 @@
             "id": 4,
             "title": "Integrate Dynamic Content Support with Playwright",
             "description": "Add Playwright integration for handling JavaScript-rendered content and infinite scroll pagination common in modern news sites",
-            "dependencies": [
-              "3.2",
-              "3.3"
-            ],
+            "dependencies": ["3.2", "3.3"],
             "details": "Create PlaywrightAdapter class to manage browser instances efficiently. Implement detectDynamicContent() to identify when Playwright is needed (check for lazy-loaded content, React/Vue markers). Add scrollAndWait() method for infinite scroll handling with content stabilization detection. Implement cookie consent handling for GDPR/privacy popups common on news sites. Create page.evaluate() scripts to extract content after JS execution. Add screenshot capability for debugging failed extractions. Implement browser context reuse for performance with periodic cleanup. Configure Playwright to run in headless mode with Korean locale settings.",
             "status": "pending",
             "testStrategy": "Test with news sites known to use client-side rendering. Verify infinite scroll loads all available articles. Test cookie consent bypass mechanisms. Measure performance impact of Playwright vs static fetching."
@@ -192,11 +165,7 @@
             "id": 5,
             "title": "Implement Robots.txt Compliance and News-Specific Validations",
             "description": "Add robots.txt checking, crawl delay compliance, and implement validation rules specific to news content quality and completeness",
-            "dependencies": [
-              "3.2",
-              "3.3",
-              "3.4"
-            ],
+            "dependencies": ["3.2", "3.3", "3.4"],
             "details": "Integrate robots-parser library to check robots.txt before crawling. Cache robots.txt content for 24 hours to reduce requests. Implement crawl-delay directive compliance from robots.txt. Create validateNewsArticle() with checks for: minimum title length (10 chars), body length (200 chars), valid date within reasonable range (not future, not >10 years old), author format validation. Add duplicate detection using content hashing (MD5 of title+body). Implement quality scoring based on content completeness (0-100 score). Create logging for validation failures with specific reasons. Add blacklist for non-article URLs (ads, videos, galleries). Implement retry mechanism for transient failures with exponential backoff.",
             "status": "pending",
             "testStrategy": "Test robots.txt parsing with various directive combinations. Verify crawl delays are properly enforced. Test validation rules with edge cases and invalid content. Verify duplicate detection with similar articles."
@@ -208,9 +177,7 @@
         "title": "Create Admin Dashboard UI",
         "description": "Build a React-based admin dashboard with Next.js for monitoring crawling operations, viewing collected content, and managing crawler configurations with real-time updates. Priority on minimal viable UI to quickly verify crawling results.",
         "status": "pending",
-        "dependencies": [
-          1
-        ],
+        "dependencies": [1],
         "priority": "high",
         "details": "CORE PHILOSOPHY: Implement minimal functional UI first to quickly verify crawling operations work correctly.\n\n1. Setup Next.js application with TypeScript (minimal config)\n2. Create basic dashboard without authentication initially\n3. Implement minimal viable pages:\n   - Contents: Simple list view to see crawled data immediately\n   - Jobs: Basic status display for active crawling\n   - Sources: Simple form to add/start crawler\n4. Basic data fetching (can use fetch initially, add TanStack Query later)\n5. Minimal styling with Tailwind CSS (functional over beautiful)\n6. Add start/stop crawler controls as priority feature\n7. Enhance incrementally:\n   - Add authentication layer\n   - Implement real-time updates\n   - Add advanced search and filtering\n   - Polish UI and responsiveness",
         "testStrategy": "1. Manual testing first to verify crawling results display\n2. Test basic CRUD operations work\n3. Verify crawler start/stop controls function\n4. Add automated tests after core functionality verified\n5. E2E tests with Playwright for critical flows once stable",
@@ -229,9 +196,7 @@
             "title": "Create Basic Contents Viewer Page",
             "description": "Build the most essential page - a simple list view to immediately see crawled content without any authentication",
             "status": "pending",
-            "dependencies": [
-              1
-            ],
+            "dependencies": [1],
             "details": "Create /app/contents/page.tsx with simple fetch() to get crawled contents from API. Display contents in a basic table or card list showing: URL, title, crawled date. Add simple pagination with next/previous buttons. No authentication required initially. Use basic Tailwind classes for minimal styling. Focus on displaying data quickly, not perfect UI.",
             "testStrategy": "Manually verify crawled content appears in the list, test pagination works, confirm data loads without authentication"
           },
@@ -240,9 +205,7 @@
             "title": "Add Crawler Control Interface",
             "description": "Create simple controls to start/stop crawler and add new sources - the minimum needed to operate the crawler",
             "status": "pending",
-            "dependencies": [
-              1
-            ],
+            "dependencies": [1],
             "details": "Create /app/sources/page.tsx with a simple form to add new crawler source (URL input + submit button). Add start/stop buttons that call crawler API endpoints. Display current crawler status (running/stopped). Show active job if crawler is running. Use fetch() for API calls with basic error handling. No complex state management initially.",
             "testStrategy": "Test adding a new source URL, verify start button triggers crawling, confirm stop button halts operation, check status updates"
           },
@@ -251,10 +214,7 @@
             "title": "Create Minimal Jobs Status Page",
             "description": "Build basic page to monitor crawling jobs and their current status",
             "status": "pending",
-            "dependencies": [
-              2,
-              3
-            ],
+            "dependencies": [2, 3],
             "details": "Create /app/jobs/page.tsx showing list of crawling jobs with status (pending/running/completed/failed). Display basic job info: source URL, start time, items crawled. Add simple auto-refresh every 5 seconds using setInterval. Color code status for quick visual feedback (green=running, gray=completed, red=failed). Keep UI minimal and functional.",
             "testStrategy": "Verify job list displays current status, test auto-refresh updates data, confirm status colors display correctly"
           },
@@ -263,11 +223,7 @@
             "title": "Add Navigation and Basic Layout",
             "description": "Create simple navigation to move between pages and basic layout structure",
             "status": "pending",
-            "dependencies": [
-              2,
-              3,
-              4
-            ],
+            "dependencies": [2, 3, 4],
             "details": "Create basic layout.tsx with simple sidebar or top navigation. Add links to Contents, Sources, and Jobs pages. Use Next.js Link component for navigation. Add simple active state highlighting. Create minimal header with app title. Keep navigation simple - can be enhanced later. Focus on functionality over aesthetics.",
             "testStrategy": "Test navigation between all pages works, verify active page is highlighted, confirm layout displays on all pages"
           },
@@ -276,9 +232,7 @@
             "title": "Progressive Enhancement Phase",
             "description": "After core functionality is verified, progressively add authentication, real-time updates, and UI polish",
             "status": "pending",
-            "dependencies": [
-              5
-            ],
+            "dependencies": [5],
             "details": "Phase 1: Add JWT authentication with login page and protected routes. Phase 2: Replace fetch() with TanStack Query for better caching. Phase 3: Add WebSocket for real-time job status updates. Phase 4: Implement search and filtering on contents page. Phase 5: Add responsive design for mobile. Phase 6: Polish UI with loading states, error handling, and animations. Each phase should be implemented only after previous functionality is stable.",
             "testStrategy": "Test each enhancement phase independently, ensure no regression in core functionality, verify performance improvements with each addition"
           }
@@ -291,10 +245,7 @@
         "details": "1. Create ContentService with methods:\n   - saveContent(): store with deduplication check\n   - getContent(): retrieve by ID or filters\n   - searchContent(): keyword search in title/body\n   - updateContent(): modify existing content\n2. Implement transaction handling for consistency\n3. Add content deduplication by URL hash\n4. Create pagination utilities\n5. Implement full-text search with MySQL\n6. Add content versioning for updates\n7. Create data validation layer\n8. Implement soft delete functionality",
         "testStrategy": "1. Test CRUD operations with various content types\n2. Verify deduplication prevents duplicates\n3. Test transaction rollback on errors\n4. Validate search accuracy and performance\n5. Load test with 10,000+ records",
         "priority": "high",
-        "dependencies": [
-          1,
-          3
-        ],
+        "dependencies": [1, 3],
         "status": "pending",
         "subtasks": [
           {
@@ -310,9 +261,7 @@
             "id": 2,
             "title": "Implement content deduplication and URL hash indexing",
             "description": "Add deduplication logic to prevent storing duplicate content by implementing URL hashing and content fingerprinting with efficient database indexing",
-            "dependencies": [
-              "5.1"
-            ],
+            "dependencies": ["5.1"],
             "details": "Enhance ContentService with deduplication:\n1. Add generateUrlHash(url: string): string method using SHA256\n2. Add generateContentHash(content: string): string for content fingerprinting\n3. Modify saveContent() to:\n   - Check for existing URL hash before insert\n   - Return existing content if duplicate found\n   - Use upsert pattern for race conditions\n4. Create database indexes:\n   - Unique index on urlHash field\n   - Index on contentHash for similarity checks\n5. Implement findDuplicates(content: ContentInput): Promise<Content[]> to check both URL and content similarity\n6. Add deduplication statistics tracking (duplicates found, prevented)",
             "status": "pending",
             "testStrategy": "Test deduplication with identical URLs, normalized URL variations, and similar content. Verify index performance with concurrent inserts"
@@ -321,9 +270,7 @@
             "id": 3,
             "title": "Implement full-text search and pagination utilities",
             "description": "Create efficient content search functionality using MySQL full-text search capabilities and implement reusable pagination utilities for large result sets",
-            "dependencies": [
-              "5.1"
-            ],
+            "dependencies": ["5.1"],
             "details": "Add search and pagination features:\n1. Implement searchContent(query: string, options?: SearchOptions): Promise<PaginatedResult<Content>> with:\n   - MySQL FULLTEXT search on title and body fields\n   - Relevance scoring and sorting\n   - Support for boolean mode searches\n   - Korean language support considerations\n2. Create PaginationHelper class with:\n   - calculateOffset(page: number, limit: number): number\n   - formatPaginatedResponse<T>(data: T[], total: number, page: number, limit: number): PaginatedResult<T>\n3. Add database migrations for FULLTEXT indexes:\n   - ALTER TABLE content ADD FULLTEXT(title, body)\n4. Implement search result highlighting\n5. Add search caching layer with Redis (prepare interface)",
             "status": "pending",
             "testStrategy": "Test search with Korean and English terms, special characters, and pagination edge cases. Benchmark search performance with 10,000+ records"
@@ -332,10 +279,7 @@
             "id": 4,
             "title": "Implement content versioning and soft delete functionality",
             "description": "Add content versioning system to track changes over time and implement soft delete pattern for data recovery and audit trail",
-            "dependencies": [
-              "5.1",
-              "5.2"
-            ],
+            "dependencies": ["5.1", "5.2"],
             "details": "Implement versioning and soft delete:\n1. Create ContentVersion model in Prisma schema:\n   - Store previous versions with parentId reference\n   - Track version number and change metadata\n2. Modify updateContent() to:\n   - Create version snapshot before update\n   - Increment version counter\n   - Store diff or full content based on configuration\n3. Implement getContentHistory(id: string): Promise<ContentVersion[]>\n4. Add soft delete functionality:\n   - Add deletedAt timestamp field\n   - Implement softDelete(id: string): Promise<void>\n   - Modify all queries to exclude soft-deleted by default\n   - Add includeDeleted option to get methods\n5. Implement restore(id: string): Promise<Content> for recovery\n6. Add cleanup job for permanent deletion after retention period",
             "status": "pending",
             "testStrategy": "Test version creation on updates, soft delete and restore operations, and verify queries correctly filter deleted content"
@@ -344,12 +288,7 @@
             "id": 5,
             "title": "Create comprehensive data validation layer and transaction handling",
             "description": "Implement robust data validation layer with custom validators and enhance all operations with proper transaction management for data consistency",
-            "dependencies": [
-              "5.1",
-              "5.2",
-              "5.3",
-              "5.4"
-            ],
+            "dependencies": ["5.1", "5.2", "5.3", "5.4"],
             "details": "Complete service with validation and transactions:\n1. Create ValidationService with:\n   - URL validation and normalization\n   - Content length constraints (min/max)\n   - Korean text encoding validation\n   - Date format validation and standardization\n   - HTML sanitization for stored content\n2. Implement transaction wrapper:\n   - withTransaction<T>(callback: (tx: PrismaTransaction) => Promise<T>): Promise<T>\n   - Automatic rollback on errors\n   - Transaction timeout configuration\n3. Enhance all methods with transactions:\n   - Batch operations in single transaction\n   - Implement bulkSaveContent() with chunking\n   - Add transaction retry logic for deadlocks\n4. Create ContentServiceError custom error class\n5. Add comprehensive logging with winston\n6. Implement service health check method",
             "status": "pending",
             "testStrategy": "Test validation rules with edge cases, transaction rollback scenarios, concurrent operations, and bulk insert performance with 1000+ items"
@@ -363,10 +302,7 @@
         "details": "1. Setup BullMQ with Redis connection\n2. Create job types:\n   - CrawlJob: single crawling task\n   - ScheduledCrawlJob: recurring crawls\n   - AnalysisJob: content analysis task\n3. Implement job processors:\n   - Error handling and retry logic\n   - Progress tracking\n   - Result storage\n4. Create scheduler with cron expressions\n5. Add job priority levels\n6. Implement job status monitoring\n7. Create dead letter queue for failed jobs\n8. Add job cleanup and archival",
         "testStrategy": "1. Test job creation and execution\n2. Verify retry mechanism on failures\n3. Test scheduled jobs with time manipulation\n4. Validate priority queue ordering\n5. Test concurrent job processing limits",
         "priority": "medium",
-        "dependencies": [
-          2,
-          5
-        ],
+        "dependencies": [2, 5],
         "status": "pending",
         "subtasks": [
           {
@@ -382,9 +318,7 @@
             "id": 2,
             "title": "Define Job Types and Interfaces",
             "description": "Create TypeScript interfaces and classes for different job types (CrawlJob, ScheduledCrawlJob, AnalysisJob) with validation schemas and priority levels",
-            "dependencies": [
-              "6.1"
-            ],
+            "dependencies": ["6.1"],
             "details": "1. Create src/queue/types/job.types.ts with base JobData interface\n2. Define CrawlJob interface: { sourceId, url, depth, priority, retryCount }\n3. Define ScheduledCrawlJob: extends CrawlJob with { cronExpression, timezone, nextRun }\n4. Define AnalysisJob: { contentId, analysisType, priority, metadata }\n5. Create Zod schemas for job data validation\n6. Define JobPriority enum: CRITICAL=1, HIGH=2, NORMAL=3, LOW=4\n7. Create JobStatus enum: PENDING, ACTIVE, COMPLETED, FAILED, DELAYED\n8. Implement job data sanitization and validation helpers",
             "status": "pending",
             "testStrategy": "Unit test job type validation with valid and invalid data, test priority ordering logic, verify schema validation catches malformed data"
@@ -393,9 +327,7 @@
             "id": 3,
             "title": "Implement Job Processors with Error Handling",
             "description": "Create processor classes for each job type with comprehensive error handling, retry logic, progress tracking, and result storage mechanisms",
-            "dependencies": [
-              "6.2"
-            ],
+            "dependencies": ["6.2"],
             "details": "1. Create src/queue/processors/CrawlProcessor.ts implementing Worker from BullMQ\n2. Implement process method with try-catch blocks and structured error logging\n3. Add exponential backoff retry: attempts=3, backoff={ type: 'exponential', delay: 2000 }\n4. Implement progress tracking: job.updateProgress(percentage) at key stages\n5. Create ScheduledCrawlProcessor extending CrawlProcessor with next run scheduling\n6. Implement AnalysisProcessor with content fetching and analysis logic\n7. Add result storage to database with job execution metadata\n8. Implement graceful shutdown handlers for all processors\n9. Create processor registry for dynamic processor selection",
             "status": "pending",
             "testStrategy": "Test processor error handling with forced failures, verify retry mechanism with time manipulation, test progress updates, validate result storage"
@@ -404,9 +336,7 @@
             "id": 4,
             "title": "Build Job Scheduler with Cron Support",
             "description": "Implement scheduling system using BullMQ's repeatable jobs feature with cron expressions, timezone support, and dynamic schedule management",
-            "dependencies": [
-              "6.3"
-            ],
+            "dependencies": ["6.3"],
             "details": "1. Create src/queue/scheduler/JobScheduler.ts class\n2. Implement addScheduledJob() method using queue.add() with repeat option\n3. Parse and validate cron expressions using cron-parser library\n4. Add timezone support with moment-timezone for accurate scheduling\n5. Create getScheduledJobs() to list all repeatable jobs\n6. Implement updateSchedule() to modify existing cron schedules\n7. Add removeScheduledJob() with proper cleanup\n8. Create schedule conflict detection to prevent duplicate schedules\n9. Implement schedule history tracking in database\n10. Add next run time calculation and display utilities",
             "status": "pending",
             "testStrategy": "Test cron expression parsing, verify scheduled job execution timing, test timezone conversions, validate schedule updates and removals"
@@ -415,9 +345,7 @@
             "id": 5,
             "title": "Create Monitoring and Dead Letter Queue System",
             "description": "Implement comprehensive job monitoring dashboard endpoints, dead letter queue for failed jobs, metrics collection, and automated cleanup with archival",
-            "dependencies": [
-              "6.4"
-            ],
+            "dependencies": ["6.4"],
             "details": "1. Create src/queue/monitoring/QueueMonitor.ts service\n2. Implement getQueueMetrics(): active, waiting, completed, failed counts\n3. Create dead letter queue configuration with maxRetriesPerRequest\n4. Implement failed job handler to move to DLQ after max retries\n5. Create job event listeners: completed, failed, stalled, progress\n6. Build REST endpoints: GET /api/queues/stats, GET /api/jobs/:id\n7. Implement job cleanup: remove completed jobs older than 7 days\n8. Create job archival to compressed JSON files before deletion\n9. Add queue health check endpoint with Redis ping\n10. Implement alert system for queue threshold breaches (email/webhook)",
             "status": "pending",
             "testStrategy": "Test metrics accuracy with known job counts, verify DLQ receives failed jobs, test cleanup with old job data, validate archival file creation"
@@ -431,10 +359,7 @@
         "details": "1. Setup Express.js with TypeScript\n2. Implement REST endpoints:\n   - /api/sources: source management\n   - /api/contents: content operations\n   - /api/jobs: job control\n   - /api/search: search functionality\n3. Setup Apollo Server for GraphQL\n4. Define GraphQL schema and resolvers\n5. Implement JWT authentication middleware\n6. Add rate limiting with Redis\n7. Create API documentation with Swagger\n8. Implement request validation with Zod\n9. Add CORS configuration",
         "testStrategy": "1. Test all REST endpoints with Supertest\n2. Verify GraphQL queries and mutations\n3. Test authentication and authorization\n4. Validate rate limiting behavior\n5. Test error handling and validation",
         "priority": "medium",
-        "dependencies": [
-          4,
-          5
-        ],
+        "dependencies": [4, 5],
         "status": "pending",
         "subtasks": []
       },
@@ -445,9 +370,7 @@
         "details": "1. Create AnalysisService base class\n2. Implement KeywordAnalyzer:\n   - Political keyword dictionary (진보/중도/보수)\n   - Weighted scoring system\n   - Configurable thresholds\n3. Add WordFrequencyAnalyzer:\n   - Korean tokenization with KoNLPy\n   - Stop word filtering\n   - TF-IDF calculation\n4. Implement basic SentimentAnalyzer:\n   - Positive/negative word lists\n   - Simple scoring algorithm\n5. Create analysis job processor\n6. Store results in analyses table\n7. Add batch processing capability",
         "testStrategy": "1. Test keyword matching accuracy\n2. Verify Korean tokenization correctness\n3. Test sentiment scoring on sample texts\n4. Validate batch processing performance\n5. Test analysis result storage and retrieval",
         "priority": "low",
-        "dependencies": [
-          5
-        ],
+        "dependencies": [5],
         "status": "pending",
         "subtasks": [
           {
@@ -463,9 +386,7 @@
             "id": 2,
             "title": "Implement KeywordAnalyzer for Political Content Detection",
             "description": "Build keyword-based analyzer that identifies political content using weighted dictionaries for 진보/중도/보수 categories with configurable scoring thresholds",
-            "dependencies": [
-              "8.1"
-            ],
+            "dependencies": ["8.1"],
             "details": "Create src/services/analysis/analyzers/KeywordAnalyzer.ts extending AnalysisService. Implement political keyword dictionaries with categories: 진보 (progressive keywords with weights), 중도 (neutral/moderate keywords), 보수 (conservative keywords). Add weighted scoring algorithm: calculate match scores for each category, normalize scores to 0-1 range, determine dominant political orientation. Make thresholds configurable via environment variables. Support both exact match and partial match modes. Store keyword dictionaries in JSON files for easy updates.",
             "status": "pending",
             "testStrategy": "Test with known political texts from each orientation, verify correct classification with various threshold settings, test edge cases with mixed political content, validate scoring algorithm accuracy"
@@ -474,9 +395,7 @@
             "id": 3,
             "title": "Add WordFrequencyAnalyzer with Korean NLP Support",
             "description": "Implement word frequency analysis with Korean tokenization using KoNLPy, stop word filtering, and TF-IDF calculation for identifying important terms",
-            "dependencies": [
-              "8.1"
-            ],
+            "dependencies": ["8.1"],
             "details": "Create src/services/analysis/analyzers/WordFrequencyAnalyzer.ts. Integrate KoNLPy for Korean tokenization (install node-konlpy or use Python bridge). Implement stop word filtering with Korean stop word list (조사, 어미 등). Calculate term frequency (TF) for each document. Implement IDF calculation using document corpus from database. Combine into TF-IDF scores to identify important terms. Return top N keywords with scores. Cache IDF values for performance. Support both Korean and English text analysis.",
             "status": "pending",
             "testStrategy": "Test Korean tokenization accuracy with various text samples, verify stop word removal works correctly, validate TF-IDF calculations against known values, test performance with large documents"
@@ -485,9 +404,7 @@
             "id": 4,
             "title": "Implement Basic SentimentAnalyzer with Korean Sentiment Lexicons",
             "description": "Create sentiment analysis module using positive/negative word lists and simple scoring algorithm adapted for Korean language sentiment patterns",
-            "dependencies": [
-              "8.1"
-            ],
+            "dependencies": ["8.1"],
             "details": "Create src/services/analysis/analyzers/SentimentAnalyzer.ts. Build Korean sentiment lexicons: positive words (긍정적, 좋은, 훌륭한 등), negative words (부정적, 나쁜, 실망 등), intensity modifiers (매우, 조금, 전혀 등). Implement scoring algorithm: tokenize input text, match against sentiment lexicons, apply intensity modifiers, calculate normalized sentiment score (-1 to +1). Handle negation patterns in Korean (안, 못, 않다 등). Return sentiment classification (positive/neutral/negative) with confidence score.",
             "status": "pending",
             "testStrategy": "Test with labeled Korean sentiment dataset, verify negation handling works correctly, test intensity modifier effects, validate score normalization"
@@ -496,11 +413,7 @@
             "id": 5,
             "title": "Create Analysis Job Processor with Batch Processing",
             "description": "Build job processing system that orchestrates multiple analyzers, handles batch processing of content, and stores results in the analyses database table",
-            "dependencies": [
-              "8.2",
-              "8.3",
-              "8.4"
-            ],
+            "dependencies": ["8.2", "8.3", "8.4"],
             "details": "Create src/services/analysis/AnalysisJobProcessor.ts. Implement job queue using Bull or native implementation. Create processContent() method that runs all analyzers (Keyword, WordFrequency, Sentiment) in parallel. Add batch processing: process multiple contents in configurable batch sizes, implement progress tracking and reporting, handle partial failures gracefully. Store results in analyses table with Prisma: create analysis schema if not exists, save raw scores and processed results, link to original content records. Add scheduling support for periodic analysis. Implement result aggregation for batch jobs.",
             "status": "pending",
             "testStrategy": "Test single and batch processing workflows, verify parallel analyzer execution, test database storage and retrieval, validate error recovery in batch processing, load test with 1000+ documents"
@@ -514,10 +427,7 @@
         "details": "1. Setup Winston logger with:\n   - Multiple transports (file, console, database)\n   - Log rotation\n   - Structured logging format\n2. Implement Prometheus metrics:\n   - Crawling success/failure rates\n   - API response times\n   - Queue lengths\n   - System resources\n3. Create health check endpoints\n4. Add Sentry for error tracking\n5. Implement custom alerts:\n   - Crawler failures\n   - High error rates\n   - Queue backlog\n6. Create monitoring dashboard\n7. Add performance profiling hooks",
         "testStrategy": "1. Verify log output formats and rotation\n2. Test metric collection accuracy\n3. Validate alert triggering conditions\n4. Test error tracking integration\n5. Verify dashboard data accuracy",
         "priority": "low",
-        "dependencies": [
-          6,
-          7
-        ],
+        "dependencies": [6, 7],
         "status": "pending",
         "subtasks": []
       },
@@ -528,10 +438,7 @@
         "details": "1. Implement exact duplicate detection:\n   - MD5/SHA256 hashing of content\n   - URL normalization and hashing\n   - Store hashes with bloom filter\n2. Add near-duplicate detection:\n   - MinHash for similarity estimation\n   - Simhash for semantic similarity\n   - Configurable similarity thresholds\n3. Create deduplication strategies:\n   - Keep first occurrence\n   - Keep from preferred source\n   - Merge metadata from duplicates\n4. Track duplicate statistics\n5. Implement cross-platform linking\n6. Add manual review queue for edge cases\n7. Create deduplication reports",
         "testStrategy": "1. Test exact duplicate detection accuracy\n2. Verify near-duplicate with 90%+ similarity\n3. Test performance with 10,000+ documents\n4. Validate deduplication strategies\n5. Test cross-source duplicate detection",
         "priority": "medium",
-        "dependencies": [
-          5,
-          8
-        ],
+        "dependencies": [5, 8],
         "status": "pending",
         "subtasks": []
       },
@@ -542,17 +449,14 @@
         "details": "1. Implement robots.txt parser and compliance:\n   - Create RobotsParser class with caching\n   - Parse Allow/Disallow rules per user-agent\n   - Implement crawl-delay and sitemap parsing\n   - Add request rate limiting based on rules\n   - Cache parsed robots.txt with TTL\n2. Build Korean morphological analyzer integration:\n   - Integrate Mecab-ko or Komoran analyzer\n   - Create tokenization pipeline for Korean text\n   - Handle mixed Korean-English content\n   - Implement POS tagging and lemmatization\n3. Develop Korean political terminology dictionary:\n   - Build comprehensive political term database\n   - Include party names, politician names, policy terms\n   - Add political slang and abbreviations\n   - Implement fuzzy matching for variations\n   - Support term evolution tracking\n4. Create privacy filtering system:\n   - Implement Korean SSN (주민등록번호) detection\n   - Add phone number and email filtering\n   - Create address and name detection\n   - Implement PII masking/removal options\n   - Add GDPR/PIPA compliance checks\n5. Add Korean date/time parsing:\n   - Parse Korean date formats (년월일)\n   - Handle traditional calendar dates\n   - Support relative time expressions\n   - Parse news article timestamps\n6. Implement crawling ethics module:\n   - User-agent identification\n   - Respect meta robots tags\n   - Implement backoff strategies\n   - Add source attribution tracking\n   - Create audit log for compliance",
         "testStrategy": "1. Test robots.txt parsing with various rule formats\n2. Verify crawl delay and rate limiting compliance\n3. Test Korean morphological analysis accuracy with sample texts\n4. Validate political term detection with real articles\n5. Test PII detection and filtering effectiveness\n6. Verify Korean date parsing with multiple formats\n7. Test compliance with ethical crawling guidelines\n8. Validate caching and performance with load tests",
         "status": "pending",
-        "dependencies": [
-          1,
-          2
-        ],
+        "dependencies": [1, 2],
         "priority": "medium",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-11T12:33:10.732Z",
+      "updated": "2025-08-12T11:11:49.464Z",
       "description": "Tasks for master context"
     }
   }

@@ -16,24 +16,28 @@ Lighthouse는 한국의 다양한 온라인 플랫폼(뉴스, 커뮤니티, SNS)
 ## ✨ 주요 기능
 
 ### 1. 지능형 웹 크롤링 엔진
+
 - 🔸 적응형 파서로 사이트 구조 자동 학습
 - 🔸 동적 콘텐츠(JavaScript) 렌더링 지원
 - 🔸 Rate limiting 및 프록시 로테이션
 - 🔸 User-Agent 로테이션 및 robots.txt 준수
 
 ### 2. NLP 기반 콘텐츠 분석
+
 - 🔸 정치 성향 분류 (진보/중도/보수)
 - 🔸 감정 분석 (긍정/부정/중립)
 - 🔸 핵심 키워드 및 개체명 추출
 - 🔸 시계열 트렌드 분석
 
 ### 3. 실시간 모니터링 대시보드
+
 - 🔸 WebSocket 기반 라이브 업데이트
 - 🔸 커스터마이징 가능한 위젯
 - 🔸 알림 및 이상 징후 감지
 - 🔸 다양한 차트 및 시각화
 
 ### 4. 고급 중복 제거 시스템
+
 - 🔸 퍼지 매칭으로 유사 콘텐츠 감지
 - 🔸 크로스 플랫폼 중복 제거
 - 🔸 원본 출처 자동 추적
@@ -41,6 +45,7 @@ Lighthouse는 한국의 다양한 온라인 플랫폼(뉴스, 커뮤니티, SNS)
 ## 🛠️ 기술 스택
 
 ### Backend
+
 - **Framework**: Node.js, TypeScript
 - **Monorepo**: Nx workspace with pnpm
 - **ORM**: Prisma with MySQL 8.0
@@ -48,12 +53,14 @@ Lighthouse는 한국의 다양한 온라인 플랫폼(뉴스, 커뮤니티, SNS)
 - **Search**: Elasticsearch 8.x
 
 ### Crawling & Analysis
+
 - **Browser Automation**: Playwright
 - **HTTP Client**: Axios
 - **NLP**: Korean language processing (예정: KoBERT)
 - **Rate Limiting**: Bottleneck
 
 ### Infrastructure
+
 - **Container**: Docker Compose
 - **Task Management**: Task Master AI
 - **Development**: Claude Code + Cursor IDE integration
@@ -154,6 +161,7 @@ pnpm nx run crawler-core:crawl --source=test-news
 ## 🗺️ 개발 로드맵
 
 ### Phase 1: MVP ✅ (진행중)
+
 - [x] 프로젝트 인프라 설정
 - [ ] 데이터베이스 스키마 구현
 - [ ] BaseCrawler 프레임워크
@@ -161,24 +169,28 @@ pnpm nx run crawler-core:crawl --source=test-news
 - [ ] 기본 Admin UI
 
 ### Phase 2: 멀티 소스 지원
+
 - [ ] 3개 주요 신문사 크롤러
 - [ ] DC인사이드/클리앙 크롤러
 - [ ] 중복 제거 시스템
 - [ ] 크롤러 모니터링
 
 ### Phase 3: NLP 분석 기능
+
 - [ ] KoBERT 정치 성향 분석
 - [ ] 감정 분석 모델
 - [ ] Elasticsearch 통합
 - [ ] 실시간 대시보드
 
 ### Phase 4: 확장 및 최적화
+
 - [ ] 분산 크롤링 시스템
 - [ ] API 플랫폼 구축
 - [ ] 고급 시각화
 - [ ] 성능 최적화
 
 ### Phase 5: 엔터프라이즈
+
 - [ ] 다중 테넌트 지원
 - [ ] SSO 및 2FA
 - [ ] AI 기반 자동 요약
@@ -202,6 +214,7 @@ npx task-master set-status --id=<id> --status=done
 ```
 
 ### 작업 통계
+
 - **총 작업**: 11개 메인 태스크
 - **서브태스크**: 35개 이상
 - **현재 진행**: 인프라 설정 및 데이터베이스 스키마
@@ -209,6 +222,7 @@ npx task-master set-status --id=<id> --status=done
 ## 🔌 API 문서
 
 ### 인증
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -220,6 +234,7 @@ Content-Type: application/json
 ```
 
 ### 크롤링 작업
+
 ```http
 POST /api/jobs/crawl
 Authorization: Bearer <token>
@@ -231,6 +246,7 @@ Authorization: Bearer <token>
 ```
 
 ### 콘텐츠 검색
+
 ```http
 GET /api/contents/search?q=keyword&from=2024-01-01
 Authorization: Bearer <token>

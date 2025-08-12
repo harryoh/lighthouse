@@ -1,16 +1,68 @@
 {
-  "name": "ai-dev-starter",
+  "name": "lighthouse",
   "version": "1.0.0",
-  "description": "AI-powered development starter template with Task Master AI and IDE integration",
+  "description": "Web content crawling and political analysis system for Korean online platforms",
   "keywords": [
-    "ai",
-    "development",
-    "template",
-    "starter",
-    "task-master",
-    "claude",
-    "cursor"
+    "crawler",
+    "analysis",
+    "nlp",
+    "korean",
+    "news",
+    "political-analysis"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "lint": "nx run-many --target=lint --all",
+    "lint:fix": "nx run-many --target=lint --all --fix",
+    "typecheck": "tsc --noEmit --project tsconfig.base.json",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "depcheck": "depcheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm format",
+    "test": "nx run-many --target=test --all",
+    "build": "nx run-many --target=build --all",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "@nx/esbuild": "21.3.11",
+    "@nx/eslint": "21.3.11",
+    "@nx/eslint-plugin": "21.3.11",
+    "@nx/jest": "21.3.11",
+    "@nx/js": "^21.3.11",
+    "@nx/node": "^21.3.11",
+    "@nx/workspace": "^21.3.11",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.2.1",
+    "depcheck": "^1.4.7",
+    "esbuild": "^0.19.2",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^10.0.0",
+    "husky": "^9.1.7",
+    "jest": "^30.0.2",
+    "jest-environment-node": "^30.0.2",
+    "jest-util": "^30.0.2",
+    "jsonc-eslint-parser": "^2.1.0",
+    "lint-staged": "^16.1.5",
+    "nx": "21.3.11",
+    "prettier": "^2.6.2",
+    "ts-jest": "^29.4.0",
+    "ts-node": "10.9.1",
+    "tslib": "^2.3.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.29.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }

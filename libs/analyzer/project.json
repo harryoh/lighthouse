@@ -1,0 +1,19 @@
+{
+  "name": "analyzer",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/analyzer/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/analyzer",
+        "main": "libs/analyzer/src/index.ts",
+        "tsConfig": "libs/analyzer/tsconfig.lib.json",
+        "assets": ["libs/analyzer/*.md"]
+      }
+    }
+  }
+}

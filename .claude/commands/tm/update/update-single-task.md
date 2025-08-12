@@ -11,6 +11,7 @@ Precisely update one task with AI assistance to maintain consistency.
 ## Argument Parsing
 
 Natural language updates:
+
 - "5: add caching requirement"
 - "update 5 to include error handling"
 - "task 5 needs rate limiting"
@@ -25,18 +26,21 @@ task-master update-task --id=<id> --prompt="<context>"
 ## Update Types
 
 ### 1. **Content Updates**
+
 - Enhance description
 - Add requirements
 - Clarify details
 - Update acceptance criteria
 
 ### 2. **Metadata Updates**
+
 - Change priority
 - Adjust time estimates
 - Update complexity
 - Modify dependencies
 
 ### 3. **Strategic Updates**
+
 - Revise approach
 - Change test strategy
 - Update implementation notes
@@ -45,13 +49,16 @@ task-master update-task --id=<id> --prompt="<context>"
 ## AI-Powered Updates
 
 The AI:
+
 1. **Understands Context**
+
    - Reads current task state
    - Identifies update intent
    - Maintains consistency
    - Preserves important info
 
 2. **Applies Changes**
+
    - Updates relevant fields
    - Keeps style consistent
    - Adds without removing
@@ -85,12 +92,14 @@ Suggestion: Also update task #6 (API Gateway) for consistency?
 ## Smart Features
 
 1. **Incremental Updates**
+
    - Adds without overwriting
    - Preserves work history
    - Tracks what changed
    - Shows diff view
 
 2. **Consistency Checks**
+
    - Related task alignment
    - Subtask compatibility
    - Dependency validity
@@ -105,6 +114,7 @@ Suggestion: Also update task #6 (API Gateway) for consistency?
 ## Field-Specific Updates
 
 Quick syntax for specific fields:
+
 - "5 priority:high" → Update priority only
 - "5 add-time:4h" → Add to time estimate
 - "5 status:review" → Change status

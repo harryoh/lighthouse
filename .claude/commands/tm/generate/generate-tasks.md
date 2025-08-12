@@ -48,6 +48,7 @@ Create a secure user authentication system with login, logout, and session manag
 ## File Organization
 
 Creates structure:
+
 ```
 .taskmaster/
 └── tasks/
@@ -60,12 +61,14 @@ Creates structure:
 ## Smart Features
 
 1. **Consistent Formatting**
+
    - Standardized structure
    - Clear sections
    - AI-readable format
    - Markdown compatible
 
 2. **Contextual Information**
+
    - Full task details
    - Related task references
    - Progress indicators
@@ -88,6 +91,7 @@ Creates structure:
 ## Generation Options
 
 Based on arguments:
+
 - Filter by status
 - Include/exclude completed
 - Custom templates

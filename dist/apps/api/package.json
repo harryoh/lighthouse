@@ -1,0 +1,9 @@
+{
+  "name": "api",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "4.21.2"
+  },
+  "main": "./main.js",
+  "type": "commonjs"
+}

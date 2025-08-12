@@ -22,13 +22,16 @@ task-master set-status --id=$ARGUMENTS --status=review
 ## Review Preparation
 
 When setting to review:
+
 1. **Generate Review Checklist**
+
    - Link to PR/MR if applicable
    - Highlight key changes
    - Note areas needing attention
    - Include test results
 
 2. **Documentation**
+
    - Update task with review notes
    - Link relevant artifacts
    - Specify reviewers if known

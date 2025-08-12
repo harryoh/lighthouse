@@ -30,12 +30,15 @@ task-master set-status --id=$ARGUMENTS --status=cancelled
 ## Cancellation Impact
 
 When cancelling:
+
 1. **Dependency Updates**
+
    - Notify dependent tasks
    - Update project scope
    - Recalculate timelines
 
 2. **Clean-up Actions**
+
    - Remove related branches
    - Archive any work done
    - Update documentation

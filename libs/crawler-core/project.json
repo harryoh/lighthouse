@@ -1,0 +1,19 @@
+{
+  "name": "crawler-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/crawler-core/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/crawler-core",
+        "main": "libs/crawler-core/src/index.ts",
+        "tsConfig": "libs/crawler-core/tsconfig.lib.json",
+        "assets": ["libs/crawler-core/*.md"]
+      }
+    }
+  }
+}

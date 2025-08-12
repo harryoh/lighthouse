@@ -13,16 +13,19 @@ task-master validate-dependencies
 ## Validation Checks
 
 1. **Circular Dependencies**
+
    - A depends on B, B depends on A
    - Complex circular chains
    - Self-dependencies
 
 2. **Missing Dependencies**
+
    - References to non-existent tasks
    - Deleted task references
    - Invalid task IDs
 
 3. **Logical Issues**
+
    - Completed tasks depending on pending
    - Cancelled tasks in dependency chains
    - Impossible sequences
@@ -35,6 +38,7 @@ task-master validate-dependencies
 ## Smart Analysis
 
 The validation provides:
+
 - Visual dependency graph
 - Critical path analysis
 - Bottleneck identification
@@ -58,6 +62,7 @@ Critical Path: #1 → #5 → #23 → #45 → #50 (15 days)
 ## Actionable Output
 
 For each issue found:
+
 - Clear description
 - Impact assessment
 - Suggested fix
@@ -66,6 +71,7 @@ For each issue found:
 ## Next Steps
 
 After validation:
+
 - Run `/project:tm/fix-dependencies` to auto-fix
 - Manually adjust problematic dependencies
 - Rerun to verify fixes

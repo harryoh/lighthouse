@@ -15,12 +15,14 @@ task-master parse-prd --input=$ARGUMENTS --research
 ## Research Benefits
 
 1. **Current Best Practices**
+
    - Latest framework patterns
    - Security considerations
    - Performance optimizations
    - Accessibility requirements
 
 2. **Technical Deep Dive**
+
    - Implementation approaches
    - Library recommendations
    - Architecture patterns
@@ -35,6 +37,7 @@ task-master parse-prd --input=$ARGUMENTS --research
 ## Enhanced Output
 
 Research mode typically:
+
 - Generates more detailed tasks
 - Includes industry standards
 - Adds compliance considerations

@@ -1,6 +1,7 @@
 List tasks with intelligent argument parsing.
 
 Parse arguments to determine filters and display options:
+
 - Status: pending, in-progress, done, review, deferred, cancelled
 - Priority: high, medium, low (or priority:high)
 - Special: subtasks, tree, dependencies, blocked
@@ -12,6 +13,7 @@ Arguments: $ARGUMENTS
 Let me parse your request intelligently:
 
 1. **Detect Filter Intent**
+
    - If arguments contain status keywords → filter by status
    - If arguments contain priority → filter by priority
    - If arguments contain "subtasks" → include subtasks
@@ -21,6 +23,7 @@ Let me parse your request intelligently:
 
 2. **Smart Combinations**
    Examples of what I understand:
+
    - "pending high" → pending tasks with high priority
    - "done today" → tasks completed today
    - "blocked" → tasks with unmet dependencies
@@ -31,6 +34,7 @@ Let me parse your request intelligently:
    Based on parsed intent, run the most specific task-master command
 
 4. **Enhanced Display**
+
    - Group by relevant criteria
    - Show most important information first
    - Use visual indicators for quick scanning
