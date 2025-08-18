@@ -66,15 +66,15 @@
         "testStrategy": "1. Unit test rate limiting behavior\n2. Test retry logic with mock failures\n3. Verify error handling and logging\n4. Test job status transitions\n5. Integration test with mock HTTP server",
         "priority": "high",
         "dependencies": [1],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Create BaseCrawler Abstract Class Structure",
             "description": "Design and implement the core BaseCrawler abstract class with essential properties, constructor, and abstract method signatures that all specific crawlers will inherit from",
             "dependencies": [],
-            "details": "Create src/crawlers/BaseCrawler.ts with: 1) Constructor accepting SourceConfig interface with url, name, type, rateLimit properties 2) Protected properties for axios instance, rate limiter, user agents array, retry config 3) Abstract methods: parseContent(html: string): ParsedContent, validateResponse(response: AxiosResponse): boolean 4) Protected helper methods signatures: fetchPage(), handleError(), updateJobStatus() 5) Define interfaces for ParsedContent, CrawlerConfig, RetryConfig",
-            "status": "in-progress",
+            "details": "Create src/crawlers/BaseCrawler.ts with: 1) Constructor accepting SourceConfig interface with url, name, type, rateLimit properties 2) Protected properties for axios instance, rate limiter, user agents array, retry config 3) Abstract methods: parseContent(html: string): ParsedContent, validateResponse(response: AxiosResponse): boolean 4) Protected helper methods signatures: fetchPage(), handleError(), updateJobStatus() 5) Define interfaces for ParsedContent, CrawlerConfig, RetryConfig\n<info added on 2025-08-18T09:31:00.733Z>\nImplementation completed successfully. The BaseCrawler abstract class has been fully implemented with all required functionality including TypeScript type definitions, Bottleneck rate limiting integration, axios-retry for automatic retry logic, comprehensive error handling with custom error classes, user agent rotation system, and the CrawlerFactory pattern for instantiating specific crawler implementations. Full BullMQ queue integration interface has been established for job processing. Unit tests have been written and all tests are passing. The library has been successfully built with no TypeScript errors.\n</info added on 2025-08-18T09:31:00.733Z>",
+            "status": "done",
             "testStrategy": "Unit test class instantiation with mock implementation, verify abstract methods enforcement, test configuration validation"
           },
           {
@@ -82,8 +82,8 @@
             "title": "Implement Rate Limiting and Request Management",
             "description": "Add rate limiting mechanism, user-agent rotation, and HTTP request handling with proper headers and proxy support preparation to the BaseCrawler class",
             "dependencies": ["2.1"],
-            "details": "Implement in BaseCrawler: 1) Rate limiter using bottleneck library with configurable minTime between requests (default 1000ms) 2) User-agent rotation from predefined list of 10+ real browser agents 3) fetchPage() method with axios configuration for headers, timeout (30s), proxy support structure 4) Request interceptor for adding random user-agent 5) Response interceptor for logging and metrics 6) Add proxy configuration interface for future implementation",
-            "status": "pending",
+            "details": "Implement in BaseCrawler: 1) Rate limiter using bottleneck library with configurable minTime between requests (default 1000ms) 2) User-agent rotation from predefined list of 10+ real browser agents 3) fetchPage() method with axios configuration for headers, timeout (30s), proxy support structure 4) Request interceptor for adding random user-agent 5) Response interceptor for logging and metrics 6) Add proxy configuration interface for future implementation\n<info added on 2025-08-18T09:42:25.333Z>\nRate limiting fully configured with Bottleneck library - 10 requests per second with maximum 2 concurrent requests. User agent rotation implemented with pool of 10 real browser agents. Axios interceptors configured for automatic user agent injection and comprehensive metrics tracking including response times, status codes, and error rates.\n</info added on 2025-08-18T09:42:25.333Z>",
+            "status": "done",
             "testStrategy": "Test rate limiting with multiple rapid requests, verify user-agent rotation, mock axios to test request configuration, measure request timing"
           },
           {
@@ -91,8 +91,8 @@
             "title": "Implement Retry Logic and Error Handling",
             "description": "Build robust error handling with exponential backoff retry mechanism and comprehensive error logging for different failure scenarios",
             "dependencies": ["2.2"],
-            "details": "Add to BaseCrawler: 1) Exponential backoff retry with axios-retry: max 3 retries, delays of 1s, 2s, 4s 2) Error classification: NetworkError, ParseError, RateLimitError, ValidationError custom classes 3) handleError() method with error type detection and appropriate actions 4) Retry only on 5xx errors and network timeouts 5) Error logging with winston: timestamp, url, error type, stack trace 6) Circuit breaker pattern preparation with failure threshold tracking",
-            "status": "pending",
+            "details": "Add to BaseCrawler: 1) Exponential backoff retry with axios-retry: max 3 retries, delays of 1s, 2s, 4s 2) Error classification: NetworkError, ParseError, RateLimitError, ValidationError custom classes 3) handleError() method with error type detection and appropriate actions 4) Retry only on 5xx errors and network timeouts 5) Error logging with winston: timestamp, url, error type, stack trace 6) Circuit breaker pattern preparation with failure threshold tracking\n<info added on 2025-08-18T09:42:48.017Z>\nNote: The core retry and error handling functionality described (exponential backoff with axios-retry, error interceptors, statistics tracking) was already implemented as part of Task 2.1's base HTTP client setup. This subtask (2.3) extends that foundation with additional error classification, custom error classes, and circuit breaker pattern preparation for more granular error handling strategies.\n</info added on 2025-08-18T09:42:48.017Z>",
+            "status": "done",
             "testStrategy": "Test retry on 503 errors, verify exponential backoff timing, test different error types handling, validate error logging format"
           },
           {
@@ -100,8 +100,8 @@
             "title": "Create CrawlerFactory and Registry System",
             "description": "Implement factory pattern for creating specific crawler instances based on source configuration and maintain a registry of available crawler types",
             "dependencies": ["2.1"],
-            "details": "Create src/crawlers/CrawlerFactory.ts: 1) CrawlerRegistry Map<string, typeof BaseCrawler> for crawler type registration 2) registerCrawler(type: string, crawlerClass: typeof BaseCrawler) method 3) createCrawler(source: SourceConfig): BaseCrawler factory method 4) Validation of crawler type existence 5) Dependency injection setup for passing services (logger, metrics, queue) 6) Auto-registration decorator @RegisterCrawler for future crawlers 7) Export singleton factory instance",
-            "status": "pending",
+            "details": "Create src/crawlers/CrawlerFactory.ts: 1) CrawlerRegistry Map<string, typeof BaseCrawler> for crawler type registration 2) registerCrawler(type: string, crawlerClass: typeof BaseCrawler) method 3) createCrawler(source: SourceConfig): BaseCrawler factory method 4) Validation of crawler type existence 5) Dependency injection setup for passing services (logger, metrics, queue) 6) Auto-registration decorator @RegisterCrawler for future crawlers 7) Export singleton factory instance\n<info added on 2025-08-18T09:44:30.648Z>\nCrawlerFactory 패턴 구현 완료. libs/crawler-core/src/crawlers/CrawlerFactory.ts 파일에서 Factory 패턴을 통한 크롤러 인스턴스 생성 시스템을 성공적으로 구현함. \n\n주요 구현 내용:\n- Registry Map을 사용한 크롤러 타입 등록 시스템 구현\n- registerCrawler 메서드로 동적 크롤러 등록 지원\n- createCrawler 메서드에서 타입 안전성을 보장하는 인스턴스 생성\n- 크롤러 타입 존재 여부 검증 로직 추가\n- 의존성 주입을 통한 logger, metrics, queue 서비스 전달 구조 구현\n- @RegisterCrawler 데코레이터를 위한 기반 구조 준비\n- 싱글톤 패턴으로 factory 인스턴스 export\n\n설정 유효성 검사 기능이 포함되어 잘못된 크롤러 타입이나 설정으로 인한 런타임 오류를 방지함.\n</info added on 2025-08-18T09:44:30.648Z>",
+            "status": "done",
             "testStrategy": "Test crawler registration and retrieval, verify factory creates correct crawler type, test error on unknown type, validate dependency injection"
           },
           {
@@ -109,8 +109,8 @@
             "title": "Implement Queue Management Integration",
             "description": "Integrate BullMQ for job queue management, implementing job status updates, progress tracking, and queue event handlers in the BaseCrawler",
             "dependencies": ["2.1", "2.3"],
-            "details": "Add queue integration: 1) Create CrawlJob interface with url, sourceId, priority, attempts properties 2) Implement updateJobStatus() method for pending/processing/completed/failed states 3) Add job progress updates during crawling phases (fetch/parse/store) 4) Create QueueService wrapper for BullMQ with methods: addJob(), getJob(), updateProgress() 5) Implement job event handlers in BaseCrawler: onComplete(), onFailed(), onProgress() 6) Add Redis connection configuration 7) Implement job retry through queue instead of internal retry for better visibility",
-            "status": "pending",
+            "details": "Add queue integration: 1) Create CrawlJob interface with url, sourceId, priority, attempts properties 2) Implement updateJobStatus() method for pending/processing/completed/failed states 3) Add job progress updates during crawling phases (fetch/parse/store) 4) Create QueueService wrapper for BullMQ with methods: addJob(), getJob(), updateProgress() 5) Implement job event handlers in BaseCrawler: onComplete(), onFailed(), onProgress() 6) Add Redis connection configuration 7) Implement job retry through queue instead of internal retry for better visibility\n<info added on 2025-08-18T09:44:56.953Z>\nQueue Management Integration successfully implemented - Created complete BullMQ-based job queue management system in libs/crawler-core/src/queue/ directory. Key components implemented: QueueInterface.ts defining CrawlJob interface and queue operation contracts, QueueManager.ts providing full queue lifecycle management with addJob(), processJob(), updateJobStatus(), and updateJobProgress() methods. Integrated Redis as the backend storage for job persistence and distributed processing. Implemented comprehensive event handling system with onComplete, onFailed, and onProgress handlers. Added job priority management, automatic retry mechanism through queue configuration, and real-time progress tracking capabilities. The system now provides centralized queue management for all crawling operations with full visibility into job states and processing metrics.\n</info added on 2025-08-18T09:44:56.953Z>",
+            "status": "done",
             "testStrategy": "Test job creation and status updates, verify progress tracking, test queue event handlers, validate Redis connection and job persistence"
           }
         ]
@@ -123,15 +123,15 @@
         "testStrategy": "1. Test extraction accuracy on 100+ sample articles\n2. Verify 95%+ parsing success rate\n3. Test pagination and article discovery\n4. Validate date parsing across formats\n5. Test with real news site in development environment",
         "priority": "high",
         "dependencies": [2],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Create NewsCrawler Class Structure and Configuration",
             "description": "Set up the NewsCrawler class extending BaseCrawler with news-specific configuration for Korean news sites, including target site selection and initial setup",
             "dependencies": [],
-            "details": "Create src/crawlers/NewsCrawler.ts extending BaseCrawler. Define NewsArticle interface with fields: title, body, author, publishedDate, images[], captions[], sourceUrl. Implement constructor to accept NewsSourceConfig with site-specific selectors (titleSelector, bodySelector, authorSelector, dateSelector, imageSelector). Add configuration presets for Korean news sites (start with Naver News as MVP). Set up user agent strings appropriate for news crawling. Configure rate limiting to 1 request per 2 seconds to respect server resources.",
-            "status": "pending",
+            "details": "Create src/crawlers/NewsCrawler.ts extending BaseCrawler. Define NewsArticle interface with fields: title, body, author, publishedDate, images[], captions[], sourceUrl. Implement constructor to accept NewsSourceConfig with site-specific selectors (titleSelector, bodySelector, authorSelector, dateSelector, imageSelector). Add configuration presets for Korean news sites (start with Naver News as MVP). Set up user agent strings appropriate for news crawling. Configure rate limiting to 1 request per 2 seconds to respect server resources.\n<info added on 2025-08-18T09:52:31.532Z>\nNewsCrawler class structure and configuration implementation completed - Created NewsCrawler class extending BaseCrawler in libs/crawler-core/src/crawlers/NewsCrawler.ts. Korean news site presets configured (Naver, Daum), news-specific rate limiting (2-second interval), date parsing with Korean format support, JSDOM integration for DOM parsing, all 22 tests passing.\n</info added on 2025-08-18T09:52:31.532Z>",
+            "status": "done",
             "testStrategy": "Unit test NewsCrawler instantiation with various configurations. Verify inheritance from BaseCrawler. Test configuration validation for required selectors. Mock BaseCrawler methods to ensure proper integration."
           },
           {
@@ -140,7 +140,7 @@
             "description": "Build the parseContent() method to extract and clean article data from HTML, handling Korean text and various date formats commonly used in Korean news sites",
             "dependencies": ["3.1"],
             "details": "Implement parseContent() method using cheerio for HTML parsing. Extract title using configured selector with fallback to meta tags (og:title, twitter:title). Parse article body by combining text from configured content selectors, removing ads/scripts/style tags. Handle Korean date formats (2024년 1월 1일, 2024-01-01, 2024/01/01) using date-fns with ko locale. Extract author from byline, meta tags, or JSON-LD structured data. Capture all images with src, alt text, and adjacent captions. Implement HTML cleaning while preserving paragraph structure for readability. Add content validation to ensure minimum length (100 chars) and required fields.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with 50+ real Korean news article HTML samples. Verify correct extraction of all fields including edge cases. Test date parsing with 10+ different Korean date formats. Validate HTML cleaning preserves Korean text properly."
           },
           {
@@ -149,7 +149,7 @@
             "description": "Implement functionality to discover article links from news category/section pages and handle pagination for comprehensive article collection",
             "dependencies": ["3.1"],
             "details": "Create discoverArticles() method to find article URLs from list pages. Implement pagination detection for common patterns: numbered pages (?page=N), infinite scroll markers, 'next' button selectors. Extract article URLs using configured link selectors with URL validation. Filter URLs to include only article pages (exclude ads, external links). Implement depth-limited crawling (max 10 pages by default) to prevent infinite loops. Store discovered URLs in Set to prevent duplicates. Add support for both static pagination and dynamic loading detection. Create method to identify and follow category/section links for broader coverage.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test pagination with mock HTML containing various pagination styles. Verify URL extraction accuracy and deduplication. Test depth limiting to ensure crawling stops appropriately. Validate against real news site pagination patterns."
           },
           {
@@ -158,7 +158,7 @@
             "description": "Add Playwright integration for handling JavaScript-rendered content and infinite scroll pagination common in modern news sites",
             "dependencies": ["3.2", "3.3"],
             "details": "Create PlaywrightAdapter class to manage browser instances efficiently. Implement detectDynamicContent() to identify when Playwright is needed (check for lazy-loaded content, React/Vue markers). Add scrollAndWait() method for infinite scroll handling with content stabilization detection. Implement cookie consent handling for GDPR/privacy popups common on news sites. Create page.evaluate() scripts to extract content after JS execution. Add screenshot capability for debugging failed extractions. Implement browser context reuse for performance with periodic cleanup. Configure Playwright to run in headless mode with Korean locale settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with news sites known to use client-side rendering. Verify infinite scroll loads all available articles. Test cookie consent bypass mechanisms. Measure performance impact of Playwright vs static fetching."
           },
           {
@@ -167,7 +167,7 @@
             "description": "Add robots.txt checking, crawl delay compliance, and implement validation rules specific to news content quality and completeness",
             "dependencies": ["3.2", "3.3", "3.4"],
             "details": "Integrate robots-parser library to check robots.txt before crawling. Cache robots.txt content for 24 hours to reduce requests. Implement crawl-delay directive compliance from robots.txt. Create validateNewsArticle() with checks for: minimum title length (10 chars), body length (200 chars), valid date within reasonable range (not future, not >10 years old), author format validation. Add duplicate detection using content hashing (MD5 of title+body). Implement quality scoring based on content completeness (0-100 score). Create logging for validation failures with specific reasons. Add blacklist for non-article URLs (ads, videos, galleries). Implement retry mechanism for transient failures with exponential backoff.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test robots.txt parsing with various directive combinations. Verify crawl delays are properly enforced. Test validation rules with edge cases and invalid content. Verify duplicate detection with similar articles."
           }
         ]
@@ -186,7 +186,7 @@
             "id": 1,
             "title": "Setup Minimal Next.js Application",
             "description": "Initialize a lightweight Next.js 14 application with TypeScript and minimal configuration to get UI running quickly",
-            "status": "pending",
+            "status": "in-progress",
             "dependencies": [],
             "details": "Create Next.js app with minimal setup focusing on speed. Use create-next-app with TypeScript. Setup basic Tailwind CSS without extensive customization. Create simple folder structure: /app, /components, /lib. Configure only essential TypeScript settings. Setup .env.local with API_URL pointing to backend. Skip complex configurations initially - can be added later.",
             "testStrategy": "Verify Next.js dev server starts and displays a basic page, confirm API_URL environment variable is accessible"
@@ -456,7 +456,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-18T05:54:57.430Z",
+      "updated": "2025-08-18T16:26:22.921Z",
       "description": "Tasks for master context"
     }
   }
