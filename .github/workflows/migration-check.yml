@@ -1,0 +1,105 @@
+name: Migration Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'prisma/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'prisma/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  test-migrations:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: lighthouse_test
+          MYSQL_USER: lighthouse_user
+          MYSQL_PASSWORD: lighthouse_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env
+          sed -i 's/localhost/127.0.0.1/g' .env
+          sed -i 's/lighthouse/lighthouse_test/g' .env
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u lighthouse_user -plighthouse_password --silent; do
+            echo 'Waiting for MySQL...'
+            sleep 2
+          done
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: mysql://lighthouse_user:lighthouse_password@127.0.0.1:3306/lighthouse_test
+
+      - name: Run seed
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: mysql://lighthouse_user:lighthouse_password@127.0.0.1:3306/lighthouse_test
+
+      - name: Validate schema
+        run: npx prisma validate
+
+      - name: Check for schema drift
+        run: |
+          npx prisma migrate diff \
+            --from-schema-datamodel prisma/schema.prisma \
+            --to-schema-datasource prisma/schema.prisma \
+            --exit-code
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          DATABASE_URL: mysql://lighthouse_user:lighthouse_password@127.0.0.1:3306/lighthouse_test
+          NODE_ENV: test

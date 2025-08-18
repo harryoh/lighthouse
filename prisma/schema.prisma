@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum SourceType {
+  NEWS
+  BLOG
+  SOCIAL
+  COMMUNITY
+}
+
+enum SourceStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  MAINTENANCE
+}
+
+enum AnalysisType {
+  SENTIMENT
+  KEYWORD
+  SUMMARY
+  POLITICAL
+  ENTITY
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum JobType {
+  CRAWL
+  ANALYSIS
+  CLEANUP
+  EXPORT
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Models
+model Source {
+  id        String       @id @default(uuid())
+  name      String       @db.VarChar(100)
+  url       String       @unique @db.VarChar(255)
+  type      SourceType
+  config    Json         @db.Json
+  status    SourceStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  contents Content[]
+  jobs     Job[]
+
+  @@index([status])
+  @@index([type])
+  @@map("sources")
+}
+
+model Content {
+  id          String   @id @default(uuid())
+  sourceId    String
+  url         String   @unique @db.VarChar(500)
+  title       String   @db.VarChar(500)
+  body        String   @db.Text
+  author      String?  @db.VarChar(100)
+  publishedAt DateTime
+  rawHtml     String   @db.LongText
+  contentHash String   @db.VarChar(64) // SHA-256 hash
+  createdAt   DateTime @default(now())
+
+  // Relations
+  source   Source     @relation(fields: [sourceId], references: [id])
+  analyses Analysis[]
+
+  @@index([sourceId, publishedAt])
+  @@index([contentHash])
+  @@index([publishedAt])
+  @@map("contents")
+}
+
+model Analysis {
+  id         String       @id @default(uuid())
+  contentId  String
+  type       AnalysisType
+  result     Json         @db.Json
+  score      Float?       @db.Float
+  analyzedAt DateTime     @default(now())
+
+  // Relations
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, type])
+  @@index([type])
+  @@map("analyses")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
+  @@map("users")
+}
+
+model Job {
+  id          String    @id @default(uuid())
+  sourceId    String?
+  type        JobType
+  status      JobStatus @default(PENDING)
+  payload     Json?     @db.Json
+  error       String?   @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  source Source? @relation(fields: [sourceId], references: [id])
+
+  @@index([status, type])
+  @@index([sourceId, createdAt])
+  @@index([createdAt])
+  @@map("jobs")
+}

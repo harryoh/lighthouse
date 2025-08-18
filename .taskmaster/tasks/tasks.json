@@ -9,7 +9,7 @@
         "testStrategy": "1. Validate Docker containers start successfully\n2. Test Prisma migrations run without errors\n3. Verify database connections from application\n4. Test CRUD operations on each entity\n5. Validate foreign key constraints and cascading deletes",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -35,7 +35,7 @@
             "description": "Create comprehensive Prisma schema defining all core entities with proper relationships, data types, indexes, and constraints for optimal query performance",
             "dependencies": ["1.1", "1.2"],
             "details": "1. Install Prisma: pnpm add -D prisma @prisma/client\n2. Initialize Prisma: npx prisma init --datasource-provider mysql\n3. Create schema in prisma/schema.prisma:\n   - Source model: id (uuid), name, url, type (enum: NEWS, BLOG, SOCIAL), config (Json), status (enum: ACTIVE, PAUSED, ERROR), createdAt, updatedAt\n   - Content model: id (uuid), sourceId (FK), url (unique), title, body (Text), author, publishedAt, rawHtml (Text), contentHash (for dedup), createdAt\n   - Analysis model: id (uuid), contentId (FK), type (enum: SENTIMENT, KEYWORD, SUMMARY), result (Json), score (Float), analyzedAt\n   - User model: id (uuid), email (unique), passwordHash, role (enum: ADMIN, USER), createdAt\n   - Job model: id (uuid), sourceId (FK), type (enum: CRAWL, ANALYSIS), status (enum: PENDING, RUNNING, COMPLETED, FAILED), payload (Json), error (Text?), startedAt, completedAt\n4. Add composite indexes: @@index([sourceId, publishedAt]), @@index([status, type]) on Job\n5. Configure cascade deletes for Content->Analysis relationship",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'npx prisma migrate dev' successfully, verify foreign key constraints work, test CRUD operations using Prisma Client, check query performance with EXPLAIN"
           },
           {
@@ -44,7 +44,7 @@
             "description": "Implement robust environment variable management, create Prisma client singleton, and setup database connection pooling with proper error handling",
             "dependencies": ["1.3"],
             "details": "1. Install dotenv and zod for env validation: pnpm add dotenv zod\n2. Create libs/database/src/config/env.ts with Zod schema:\n   - Define all required env vars with types and defaults\n   - Add validation for DATABASE_URL format\n   - Export typed env object\n3. Create libs/database/src/prisma.ts with singleton pattern:\n   - Initialize PrismaClient with connection pool settings\n   - Add query logging in development\n   - Implement graceful shutdown handling\n   - Export typed Prisma client instance\n4. Create .env.local with actual values (gitignored)\n5. Setup libs/database/src/index.ts as main export\n6. Add database connection health check endpoint\n7. Create seed script in prisma/seed.ts for initial data\n8. Add npm scripts: 'db:migrate', 'db:seed', 'db:studio'",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test environment validation with missing/invalid values, verify Prisma client connects successfully, test connection pooling under load, ensure graceful shutdown works"
           },
           {
@@ -53,7 +53,7 @@
             "description": "Generate initial database migration, create seed data for development/testing, and setup migration workflow for team collaboration",
             "dependencies": ["1.4"],
             "details": "1. Generate initial migration: npx prisma migrate dev --name init\n2. Create comprehensive seed script (prisma/seed.ts):\n   - Create admin user with hashed password (using bcrypt)\n   - Add 3 sample sources (Korean news sites)\n   - Insert 10 sample contents with varied dates\n   - Add sample analysis results\n   - Create pending and completed job records\n3. Configure package.json prisma.seed command\n4. Run seeding: npx prisma db seed\n5. Create migration README with team guidelines:\n   - How to create new migrations\n   - Naming conventions\n   - Testing requirements before commit\n6. Setup GitHub Actions workflow for migration validation\n7. Create database backup script for production migrations\n8. Document rollback procedures",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify migration applies cleanly to fresh database, test seed script idempotency, validate foreign key constraints work correctly, ensure migrations are reversible"
           }
         ]
@@ -66,7 +66,7 @@
         "testStrategy": "1. Unit test rate limiting behavior\n2. Test retry logic with mock failures\n3. Verify error handling and logging\n4. Test job status transitions\n5. Integration test with mock HTTP server",
         "priority": "high",
         "dependencies": [1],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -74,7 +74,7 @@
             "description": "Design and implement the core BaseCrawler abstract class with essential properties, constructor, and abstract method signatures that all specific crawlers will inherit from",
             "dependencies": [],
             "details": "Create src/crawlers/BaseCrawler.ts with: 1) Constructor accepting SourceConfig interface with url, name, type, rateLimit properties 2) Protected properties for axios instance, rate limiter, user agents array, retry config 3) Abstract methods: parseContent(html: string): ParsedContent, validateResponse(response: AxiosResponse): boolean 4) Protected helper methods signatures: fetchPage(), handleError(), updateJobStatus() 5) Define interfaces for ParsedContent, CrawlerConfig, RetryConfig",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "Unit test class instantiation with mock implementation, verify abstract methods enforcement, test configuration validation"
           },
           {
@@ -456,7 +456,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-12T15:54:56.619Z",
+      "updated": "2025-08-18T05:54:57.430Z",
       "description": "Tasks for master context"
     }
   }
