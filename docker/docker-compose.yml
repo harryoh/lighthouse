@@ -4,14 +4,12 @@ services:
     container_name: lighthouse-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: lighthouse_root_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-pass}
       MYSQL_DATABASE: lighthouse
-      MYSQL_USER: lighthouse_user
-      MYSQL_PASSWORD: lighthouse_password
     ports:
       - '3306:3306'
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
       - ./init.db:/docker-entrypoint-initdb.d
     networks:
       - lighthouse-network
@@ -21,21 +19,24 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack:latest
     container_name: lighthouse-redis
-    restart: unless-stopped
     ports:
-      - '6379:6379'
+      - 6379:6379
+      - 8001:8001 # RedisInsight web UI
+    environment:
+      REDIS_ARGS: '--save 60 1 --save 300 10 --save 900 100'
     volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+      - redis-data:/data
     networks:
       - lighthouse-network
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
-      timeout: 3s
+      timeout: 5s
       retries: 5
+      start_period: 30s
 
   localstack:
     image: localstack/localstack:latest
@@ -56,7 +57,7 @@ services:
       - lighthouse-network
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:4566/_localstack/health']
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
@@ -65,7 +66,7 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  mysql-data:
     driver: local
-  redis_data:
+  redis-data:
     driver: local
