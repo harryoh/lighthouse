@@ -7,4 +7,6 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/apps/api',
+  detectOpenHandles: true,
+  testTimeout: 5000,
 };

@@ -1,0 +1,42 @@
+{
+  "name": "@lighthouse/admin",
+  "version": "1.0.0",
+  "description": "Lighthouse Admin Dashboard",
+  "scripts": {
+    "build": "NODE_ENV=production next build",
+    "dev": "next dev",
+    "start": "next start",
+    "test": "jest --forceExit",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "depcheck": "depcheck . --skip-missing=true --ignores autoprefixer,postcss"
+  },
+  "dependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.13",
+    "@tanstack/react-query": "^5.45.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.396.0",
+    "next": "^15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.3.0"
+  },
+  "devDependencies": {
+    "@eslint/compat": "^1.1.1",
+    "@eslint/js": "^9.8.0",
+    "@eslint/eslintrc": "^2.1.1",
+    "@nx/eslint-plugin": "21.3.11",
+    "@nx/next": "^21.4.0",
+    "@testing-library/react": "16.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.14.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.19",
+    "jest": "^30.0.2",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.5"
+  }
+}
