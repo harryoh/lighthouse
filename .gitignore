@@ -39,3 +39,7 @@ node_modules/
 # Nx build output and temporary files
 dist/
 tmp/
+
+# Next.js
+.next
+out
