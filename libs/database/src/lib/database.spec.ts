@@ -1,7 +1,9 @@
-import { database } from './database';
+import { prisma, contentService } from '../index';
 
-describe('database', () => {
-  it('should work', () => {
-    expect(database()).toEqual('database');
+describe('database library', () => {
+  it('should export main components', () => {
+    expect(prisma).toBeDefined();
+    expect(contentService).toBeDefined();
+    expect(typeof contentService.saveContent).toBe('function');
   });
 });

@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-pass}
       MYSQL_DATABASE: lighthouse
     ports:
-      - '3306:3306'
+      - '3307:3306'
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init.db:/docker-entrypoint-initdb.d
@@ -22,8 +22,8 @@ services:
     image: redis/redis-stack:latest
     container_name: lighthouse-redis
     ports:
-      - 6379:6379
-      - 8001:8001 # RedisInsight web UI
+      - 6380:6379
+      - 8002:8001 # RedisInsight web UI
     environment:
       REDIS_ARGS: '--save 60 1 --save 300 10 --save 900 100'
     volumes:
@@ -43,8 +43,8 @@ services:
     container_name: lighthouse-localstack
     restart: unless-stopped
     ports:
-      - '4566:4566' # LocalStack Gateway
-      - '4571:4571' # External services
+      - '4567:4566' # LocalStack Gateway
+      - '4572:4571' # External services
     environment:
       - SERVICES=s3,sqs,sns,dynamodb
       - DEBUG=0

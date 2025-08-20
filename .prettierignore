@@ -1,5 +1,51 @@
 # Add files here to ignore them from prettier formatting
+
+# Build outputs and temporary files
 /dist
 /coverage
+/tmp
 /.nx/cache
 /.nx/workspace-data
+
+# Next.js build outputs
+.next/
+out/
+
+# Documentation files
+*.md
+README.md
+CLAUDE.md
+MIGRATION_GUIDE.md
+
+# Configuration files
+*.json
+package.json
+tsconfig*.json
+nx.json
+.lintstagedrc.json
+jest.config.ts
+next.config.js
+postcss.config.js
+tailwind.config.ts
+
+# Environment and settings
+.env*
+*.yml
+*.yaml
+docker-compose.yml
+
+# Prisma files
+prisma/migrations/
+schema.prisma
+
+# Docker files
+docker/
+
+# Generated and vendor files
+node_modules/
+pnpm-lock.yaml
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store

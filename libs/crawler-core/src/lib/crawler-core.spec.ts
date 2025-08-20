@@ -1,7 +1,8 @@
-import { crawlerCore } from './crawler-core';
+import { NewsCrawler } from '../crawlers/NewsCrawler';
 
 describe('crawlerCore', () => {
-  it('should work', () => {
-    expect(crawlerCore()).toEqual('crawler-core');
+  it('should export main components', () => {
+    expect(NewsCrawler).toBeDefined();
+    expect(typeof NewsCrawler).toBe('function');
   });
 });

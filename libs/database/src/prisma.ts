@@ -15,15 +15,6 @@ const prismaClientSingleton = () => {
         url: config.url,
       },
     },
-    // Connection pool configuration
-    // @ts-expect-error - Prisma types might not include all options
-    connectionLimit: isProduction() ? 10 : 5,
-    // Query timeout in milliseconds
-    // @ts-expect-error - queryTimeout is not in Prisma types but supported at runtime
-    queryTimeout: 30000,
-    // Connection timeout in milliseconds
-    // @ts-expect-error - connectTimeout is not in Prisma types but supported at runtime
-    connectTimeout: 10000,
   });
 };
 

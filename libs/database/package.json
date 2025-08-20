@@ -6,10 +6,13 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "tslib": "^2.3.0",
     "@prisma/client": "^6.14.0",
-    "zod": "^4.0.17",
     "dotenv": "^17.2.1",
-    "redis": "^5.8.1"
+    "redis": "^5.8.1",
+    "zod": "^4.0.17",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "jsonc-eslint-parser": "^2.4.0"
   }
 }

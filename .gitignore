@@ -43,3 +43,9 @@ tmp/
 # Next.js
 .next
 out
+
+# TypeScript build info
+*.tsbuildinfo
+
+# SWC plugins
+**/.swc/

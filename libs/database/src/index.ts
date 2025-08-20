@@ -23,3 +23,9 @@ export {
   HealthCheckResult,
   ServiceHealth,
 } from './health';
+
+// Services
+export { ContentService, contentService } from './services/ContentService';
+
+// Types
+export * from './types/content.types';

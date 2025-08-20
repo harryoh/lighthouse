@@ -15,7 +15,11 @@
     "depcheck": "depcheck . --skip-missing=true"
   },
   "dependencies": {
-    "express": "4.21.2"
+    "cors": "2.8.5",
+    "dotenv": "17.2.1",
+    "express": "4.21.2",
+    "redis": "5.8.1",
+    "zod": "4.0.17"
   },
   "main": "./main.js",
   "type": "commonjs"

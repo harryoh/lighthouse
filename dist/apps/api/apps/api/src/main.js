@@ -22,12 +22,63 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 var import_express = __toESM(require("express"));
+var import_cors = __toESM(require("cors"));
+var import_database = require("@lighthouse/database");
+var import_content = __toESM(require("./routes/content.routes"));
+var import_error_handler = require("./middleware/error-handler");
 const host = process.env.HOST ?? "localhost";
 const port = process.env.PORT ? Number(process.env.PORT) : 3e3;
 const app = (0, import_express.default)();
-app.get("/", (_req, res) => {
-  res.send({ message: "Hello API" });
+app.use((0, import_cors.default)());
+app.use(import_express.default.json({ limit: "10mb" }));
+app.use(import_express.default.urlencoded({ extended: true }));
+if (process.env.NODE_ENV !== "production") {
+  app.use((req, _res, next) => {
+    console.log(`${(/* @__PURE__ */ new Date()).toISOString()} ${req.method} ${req.path}`);
+    next();
+  });
+}
+app.get("/health", async (_req, res) => {
+  const healthStatus = await (0, import_database.performHealthCheck)();
+  const status = healthStatus.status === "healthy" ? 200 : 503;
+  res.status(status).json(healthStatus);
 });
-app.listen(port, host, () => {
-  console.log(`[ ready ] http://${host}:${port}`);
+app.get("/", (_req, res) => {
+  res.json({
+    message: "Lighthouse API",
+    version: "1.0.0",
+    endpoints: {
+      health: "/health",
+      contents: "/api/contents"
+    }
+  });
+});
+app.use("/api/contents", import_content.default);
+app.use(import_error_handler.notFoundHandler);
+app.use(import_error_handler.errorHandler);
+const server = app.listen(port, host, async () => {
+  console.log(`\u{1F680} Lighthouse API server running at http://${host}:${port}`);
+  try {
+    await import_database.prisma.$connect();
+    console.log("\u2705 Database connected successfully");
+  } catch (error) {
+    console.error("\u274C Database connection failed:", error);
+    process.exit(1);
+  }
+});
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down gracefully...");
+  server.close(() => {
+    console.log("Server closed");
+  });
+  await import_database.prisma.$disconnect();
+  process.exit(0);
+});
+process.on("SIGINT", async () => {
+  console.log("SIGINT received, shutting down gracefully...");
+  server.close(() => {
+    console.log("Server closed");
+  });
+  await import_database.prisma.$disconnect();
+  process.exit(0);
 });

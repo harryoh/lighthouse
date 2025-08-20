@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.healthCheckHandler = exports.performHealthCheck = exports.getQueueConfig = exports.getCrawlerConfig = exports.getAWSConfig = exports.getRedisConfig = exports.getDatabaseConfig = exports.isTest = exports.isDevelopment = exports.isProduction = exports.env = exports.default = exports.prisma = void 0;
+exports.contentService = exports.ContentService = exports.healthCheckHandler = exports.performHealthCheck = exports.getQueueConfig = exports.getCrawlerConfig = exports.getAWSConfig = exports.getRedisConfig = exports.getDatabaseConfig = exports.isTest = exports.isDevelopment = exports.isProduction = exports.env = exports.default = exports.prisma = void 0;
 const tslib_1 = require("tslib");
 // Prisma client and types
 var prisma_1 = require("./prisma");
@@ -22,4 +22,10 @@ Object.defineProperty(exports, "getQueueConfig", { enumerable: true, get: functi
 var health_1 = require("./health");
 Object.defineProperty(exports, "performHealthCheck", { enumerable: true, get: function () { return health_1.performHealthCheck; } });
 Object.defineProperty(exports, "healthCheckHandler", { enumerable: true, get: function () { return health_1.healthCheckHandler; } });
+// Services
+var ContentService_1 = require("./services/ContentService");
+Object.defineProperty(exports, "ContentService", { enumerable: true, get: function () { return ContentService_1.ContentService; } });
+Object.defineProperty(exports, "contentService", { enumerable: true, get: function () { return ContentService_1.contentService; } });
+// Types
+tslib_1.__exportStar(require("./types/content.types"), exports);
 //# sourceMappingURL=index.js.map
