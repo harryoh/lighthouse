@@ -2,6 +2,18 @@ import { ContentService } from './ContentService';
 import { PrismaClient } from '@prisma/client';
 import { ContentInput } from '../types/content.types';
 
+// Type for transaction mock
+type TransactionCallback = (tx: {
+  content: {
+    create?: jest.Mock;
+    update?: jest.Mock;
+    findUnique?: jest.Mock;
+  };
+  contentVersion?: {
+    create?: jest.Mock;
+  };
+}) => Promise<unknown>;
+
 // Mock Prisma Client
 jest.mock('@prisma/client', () => {
   const mockPrismaClient = {
@@ -12,8 +24,15 @@ jest.mock('@prisma/client', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      deleteMany: jest.fn(),
       count: jest.fn(),
       groupBy: jest.fn(),
+    },
+    contentVersion: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      deleteMany: jest.fn(),
     },
     $transaction: jest.fn(),
     $queryRaw: jest.fn(),
@@ -30,6 +49,8 @@ jest.mock('@prisma/client', () => {
 
 describe('ContentService', () => {
   let contentService: ContentService;
+  // Using any for mock object since it's a test file
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockPrisma: any;
 
   beforeEach(() => {
@@ -58,14 +79,16 @@ describe('ContentService', () => {
       };
 
       mockPrisma.content.findFirst.mockResolvedValue(null);
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        const tx = {
-          content: {
-            create: jest.fn().mockResolvedValue(mockContent),
-          },
-        };
-        return callback(tx);
-      });
+      mockPrisma.$transaction.mockImplementation(
+        async (callback: TransactionCallback) => {
+          const tx = {
+            content: {
+              create: jest.fn().mockResolvedValue(mockContent),
+            },
+          };
+          return callback(tx);
+        }
+      );
 
       const result = await contentService.saveContent(validContentInput);
 
@@ -209,15 +232,31 @@ describe('ContentService', () => {
         id: 'content-123',
         title: 'Old Title',
         body: 'Old Body',
+        version: 1,
+        publishedAt: new Date(),
+        rawHtml: '<p>Old Body</p>',
+        contentHash: 'hash123',
+        author: 'Test Author',
       };
 
       const updatedContent = {
         ...existingContent,
         title: 'New Title',
+        version: 2,
       };
 
+      // Mock transaction to execute the callback
+      mockPrisma.$transaction.mockImplementation(
+        async (callback: TransactionCallback) => {
+          const tx = {
+            contentVersion: { create: jest.fn().mockResolvedValue({}) },
+            content: { update: jest.fn().mockResolvedValue(updatedContent) },
+          };
+          return callback(tx);
+        }
+      );
+
       mockPrisma.content.findUnique.mockResolvedValue(existingContent);
-      mockPrisma.content.update.mockResolvedValue(updatedContent);
 
       const result = await contentService.updateContent('content-123', {
         title: 'New Title',
@@ -306,6 +345,268 @@ describe('ContentService', () => {
 
       expect(stats).toEqual(mockStats);
       expect(mockPrisma.$transaction).toHaveBeenCalled();
+    });
+  });
+
+  describe('softDelete', () => {
+    const mockContent = {
+      id: 'content-123',
+      title: 'Test Article',
+      deletedAt: null,
+      version: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should soft delete content successfully', async () => {
+      const deletedContent = {
+        ...mockContent,
+        deletedAt: new Date(),
+        deletedBy: 'user-123',
+      };
+
+      mockPrisma.content.findUnique.mockResolvedValue(mockContent);
+      mockPrisma.content.update.mockResolvedValue(deletedContent);
+
+      const result = await contentService.softDelete('content-123', {
+        deletedBy: 'user-123',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(deletedContent);
+      expect(mockPrisma.content.update).toHaveBeenCalledWith({
+        where: { id: 'content-123' },
+        data: {
+          deletedAt: expect.any(Date),
+          deletedBy: 'user-123',
+        },
+      });
+    });
+
+    it('should return error for non-existent content', async () => {
+      mockPrisma.content.findUnique.mockResolvedValue(null);
+
+      const result = await contentService.softDelete('non-existent');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Content not found');
+    });
+
+    it('should return error for already deleted content', async () => {
+      const alreadyDeleted = { ...mockContent, deletedAt: new Date() };
+      mockPrisma.content.findUnique.mockResolvedValue(alreadyDeleted);
+
+      const result = await contentService.softDelete('content-123');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('already deleted');
+    });
+  });
+
+  describe('restore', () => {
+    const mockDeletedContent = {
+      id: 'content-123',
+      title: 'Test Article',
+      deletedAt: new Date(),
+      deletedBy: 'user-123',
+      version: 1,
+    };
+
+    it('should restore content successfully', async () => {
+      const restoredContent = {
+        ...mockDeletedContent,
+        deletedAt: null,
+        deletedBy: null,
+      };
+
+      mockPrisma.content.findUnique.mockResolvedValue(mockDeletedContent);
+      mockPrisma.content.update.mockResolvedValue(restoredContent);
+
+      const result = await contentService.restore('content-123');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(restoredContent);
+      expect(mockPrisma.content.update).toHaveBeenCalledWith({
+        where: { id: 'content-123' },
+        data: {
+          deletedAt: null,
+          deletedBy: null,
+        },
+      });
+    });
+
+    it('should return error for non-deleted content', async () => {
+      const notDeletedContent = { ...mockDeletedContent, deletedAt: null };
+      mockPrisma.content.findUnique.mockResolvedValue(notDeletedContent);
+
+      const result = await contentService.restore('content-123');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('not deleted');
+    });
+  });
+
+  describe('updateContent with versioning', () => {
+    const mockExistingContent = {
+      id: 'content-123',
+      title: 'Original Title',
+      body: 'Original body',
+      version: 1,
+      contentHash: 'original-hash',
+      author: 'Original Author',
+      publishedAt: new Date('2024-01-01'),
+      rawHtml: '<html>original</html>',
+      deletedAt: null,
+    };
+
+    it('should update content and create version', async () => {
+      const updateData = { title: 'Updated Title', body: 'Updated body' };
+      const updatedContent = {
+        ...mockExistingContent,
+        ...updateData,
+        version: 2,
+      };
+
+      mockPrisma.content.findUnique.mockResolvedValue(mockExistingContent);
+      mockPrisma.$transaction.mockImplementation(
+        async (callback: TransactionCallback) => {
+          const tx = {
+            contentVersion: {
+              create: jest.fn(),
+            },
+            content: {
+              update: jest.fn().mockResolvedValue(updatedContent),
+            },
+          };
+          return callback(tx);
+        }
+      );
+
+      const result = await contentService.updateContent('content-123', {
+        ...updateData,
+        versioningOptions: {
+          changedBy: 'user-123',
+          changeReason: 'Content update',
+        },
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.version).toBe(2);
+    });
+
+    it('should not update deleted content', async () => {
+      const deletedContent = { ...mockExistingContent, deletedAt: new Date() };
+      mockPrisma.content.findUnique.mockResolvedValue(deletedContent);
+
+      const result = await contentService.updateContent('content-123', {
+        title: 'New Title',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Cannot update deleted content');
+    });
+  });
+
+  describe('getContentHistory', () => {
+    it('should return version history', async () => {
+      const mockVersions = [
+        {
+          id: 'version-1',
+          contentId: 'content-123',
+          version: 2,
+          title: 'Updated Title',
+          changedAt: new Date(),
+        },
+        {
+          id: 'version-2',
+          contentId: 'content-123',
+          version: 1,
+          title: 'Original Title',
+          changedAt: new Date(),
+        },
+      ];
+
+      mockPrisma.content.findUnique.mockResolvedValue({ id: 'content-123' });
+      mockPrisma.contentVersion.findMany.mockResolvedValue(mockVersions);
+
+      const result = await contentService.getContentHistory('content-123');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockVersions);
+      expect(mockPrisma.contentVersion.findMany).toHaveBeenCalledWith({
+        where: { contentId: 'content-123' },
+        orderBy: { version: 'desc' },
+      });
+    });
+  });
+
+  describe('restoreVersion', () => {
+    const mockCurrentContent = {
+      id: 'content-123',
+      title: 'Current Title',
+      body: 'Current body',
+      version: 3,
+      author: 'Current Author',
+      publishedAt: new Date('2024-01-03'),
+      rawHtml: '<html>current</html>',
+      contentHash: 'current-hash',
+    };
+
+    const mockVersionToRestore = {
+      id: 'version-1',
+      contentId: 'content-123',
+      version: 1,
+      title: 'Original Title',
+      body: 'Original body',
+      author: 'Original Author',
+      publishedAt: new Date('2024-01-01'),
+      rawHtml: '<html>original</html>',
+      contentHash: 'original-hash',
+      changedAt: new Date(),
+    };
+
+    it('should restore to specific version', async () => {
+      const restoredContent = {
+        ...mockCurrentContent,
+        title: mockVersionToRestore.title,
+        body: mockVersionToRestore.body,
+        version: 4,
+      };
+
+      mockPrisma.contentVersion.findUnique.mockResolvedValue(
+        mockVersionToRestore
+      );
+      mockPrisma.content.findUnique.mockResolvedValue(mockCurrentContent);
+      mockPrisma.$transaction.mockImplementation(
+        async (callback: TransactionCallback) => {
+          const tx = {
+            contentVersion: {
+              create: jest.fn(),
+            },
+            content: {
+              update: jest.fn().mockResolvedValue(restoredContent),
+            },
+          };
+          return callback(tx);
+        }
+      );
+
+      const result = await contentService.restoreVersion('content-123', 1, {
+        changedBy: 'user-123',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.title).toBe('Original Title');
+      expect(result.data?.version).toBe(4);
+    });
+
+    it('should return error for non-existent version', async () => {
+      mockPrisma.contentVersion.findUnique.mockResolvedValue(null);
+
+      const result = await contentService.restoreVersion('content-123', 999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Version 999 not found');
     });
   });
 });

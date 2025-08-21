@@ -27,5 +27,22 @@ export {
 // Services
 export { ContentService, contentService } from './services/ContentService';
 
-// Types
-export * from './types/content.types';
+// Types (explicitly export to avoid ContentVersion naming conflict)
+export type {
+  ContentInput,
+  ContentFilters,
+  PaginationOptions,
+  SearchOptions,
+  PaginatedResponse,
+  ContentWithRelations,
+  ContentUpdateInput,
+  ServiceResponse,
+  HashOptions,
+  SoftDeleteOptions,
+  RestoreOptions,
+  VersioningOptions,
+  ContentUpdateInputWithVersion,
+  VersionDiff,
+  CleanupOptions,
+  ContentVersion,
+} from './types/content.types';

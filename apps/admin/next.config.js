@@ -19,6 +19,9 @@ const nextConfig = {
   // Disable all static optimization
   trailingSlash: false,
   generateEtags: false,
+  // Enable standalone output for Docker
+  output: 'standalone',
+  outputFileTracingRoot: require('path').join(__dirname, '../../'),
 };
 
 const plugins = [

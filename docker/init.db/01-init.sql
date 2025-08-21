@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `sources` (
   KEY `sources_type_idx` (`type`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- Contents table
+-- Contents table with versioning and soft delete
 CREATE TABLE IF NOT EXISTS `contents` (
   `id` VARCHAR(191) NOT NULL,
   `sourceId` VARCHAR(191) NOT NULL,
@@ -30,14 +30,41 @@ CREATE TABLE IF NOT EXISTS `contents` (
   `publishedAt` DATETIME(3) NOT NULL,
   `rawHtml` LONGTEXT NOT NULL,
   `contentHash` VARCHAR(64) NOT NULL,
+  `version` INT NOT NULL DEFAULT 1,
+  `deletedAt` DATETIME(3) NULL,
+  `deletedBy` VARCHAR(100) NULL,
   `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   
   PRIMARY KEY (`id`),
   UNIQUE KEY `contents_url_key` (`url`),
   KEY `contents_sourceId_publishedAt_idx` (`sourceId`, `publishedAt`),
   KEY `contents_contentHash_idx` (`contentHash`),
   KEY `contents_publishedAt_idx` (`publishedAt`),
+  KEY `contents_deletedAt_idx` (`deletedAt`),
   CONSTRAINT `contents_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `sources` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Content Versions table for version history
+CREATE TABLE IF NOT EXISTS `content_versions` (
+  `id` VARCHAR(191) NOT NULL,
+  `contentId` VARCHAR(191) NOT NULL,
+  `version` INT NOT NULL,
+  `title` VARCHAR(500) NOT NULL,
+  `body` TEXT NOT NULL,
+  `author` VARCHAR(100) NULL,
+  `publishedAt` DATETIME(3) NOT NULL,
+  `rawHtml` LONGTEXT NOT NULL,
+  `contentHash` VARCHAR(64) NOT NULL,
+  `changedBy` VARCHAR(100) NULL,
+  `changedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `changeReason` TEXT NULL,
+  
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `content_versions_contentId_version_key` (`contentId`, `version`),
+  KEY `content_versions_contentId_version_idx` (`contentId`, `version`),
+  KEY `content_versions_changedAt_idx` (`changedAt`),
+  CONSTRAINT `content_versions_contentId_fkey` FOREIGN KEY (`contentId`) REFERENCES `contents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Analyses table

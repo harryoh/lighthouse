@@ -1,0 +1,110 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Development files
+.env
+.env.local
+.env.*.local
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Node modules (will be installed fresh in Docker)
+node_modules/
+**/node_modules/
+
+# Build outputs (will be built fresh in Docker)
+dist/
+**/dist/
+tmp/
+**/tmp/
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+
+# Test files
+coverage/
+**/coverage/
+*.spec.ts
+*.spec.tsx
+*.spec.js
+*.spec.jsx
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+__tests__/
+**/__tests__/
+specs/
+**/specs/
+
+# Docker files (don't need to copy into context)
+docker/
+Dockerfile*
+docker-compose*.yml
+
+# Task Master files (development only)
+.taskmaster/
+.claude/
+
+# TypeScript build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Cache directories
+.cache/
+**/.cache/
+.turbo/
+**/.turbo/
+.nx/
+**/.nx/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Scripts (except necessary ones)
+scripts/
+!docker/scripts/
+
+# Github
+.github/
+
+# Husky
+.husky/

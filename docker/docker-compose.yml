@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mysql:
     image: mysql:8.0
@@ -9,7 +11,7 @@ services:
     ports:
       - '3307:3306'
     volumes:
-      - mysql-data:/var/lib/mysql
+      - lighthouse-mysql-data:/var/lib/mysql
       - ./init.db:/docker-entrypoint-initdb.d
     networks:
       - lighthouse-network
@@ -27,7 +29,7 @@ services:
     environment:
       REDIS_ARGS: '--save 60 1 --save 300 10 --save 900 100'
     volumes:
-      - redis-data:/data
+      - lighthouse-redis-data:/data
     networks:
       - lighthouse-network
     restart: unless-stopped
@@ -61,12 +63,97 @@ services:
       timeout: 5s
       retries: 5
 
+  # API Service
+  api:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.packages
+      target: api
+    container_name: lighthouse-api
+    restart: unless-stopped
+    ports:
+      - '8000:3001'
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD:-pass}@mysql:3306/lighthouse
+      - REDIS_URL=redis://redis:6379
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-minimum-32-characters-long}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    networks:
+      - lighthouse-network
+    volumes:
+      # Optional: Mount logs directory for debugging
+      - ../logs/api:/app/logs
+
+  # Admin Dashboard Service
+  admin:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.packages
+      target: admin
+    container_name: lighthouse-admin
+    restart: unless-stopped
+    ports:
+      - '8888:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://api:3001
+      - NEXT_PUBLIC_APP_NAME=Lighthouse Admin
+    depends_on:
+      - api
+    networks:
+      - lighthouse-network
+    volumes:
+      # Optional: Mount for Next.js cache in development
+      - ../apps/admin/.next/cache:/app/.next/cache
+
+  # Development service (optional - for local development with hot reload)
+  # Uncomment to use development mode with volume mounts
+  # dev:
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/Dockerfile.packages
+  #     target: development
+  #   container_name: lighthouse-dev
+  #   ports:
+  #     - '3000:3000'
+  #     - '3001:3001'
+  #   environment:
+  #     - NODE_ENV=development
+  #     - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD:-pass}@mysql:3306/lighthouse
+  #     - REDIS_URL=redis://redis:6379
+  #   volumes:
+  #     - ../:/workspace
+  #     - /workspace/node_modules
+  #     - /workspace/apps/admin/node_modules
+  #     - /workspace/apps/api/node_modules
+  #   depends_on:
+  #     - mysql
+  #     - redis
+  #     - localstack
+  #   networks:
+  #     - lighthouse-network
+  #   command: pnpm nx run-many --target=serve --all --parallel
+
 networks:
   lighthouse-network:
     driver: bridge
 
 volumes:
-  mysql-data:
+  lighthouse-mysql-data:
     driver: local
-  redis-data:
+  lighthouse-redis-data:
     driver: local

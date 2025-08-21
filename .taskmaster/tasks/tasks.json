@@ -295,7 +295,7 @@
           1,
           3
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -336,8 +336,8 @@
               "5.1",
               "5.2"
             ],
-            "details": "Implement versioning and soft delete:\n1. Create ContentVersion model in Prisma schema:\n   - Store previous versions with parentId reference\n   - Track version number and change metadata\n2. Modify updateContent() to:\n   - Create version snapshot before update\n   - Increment version counter\n   - Store diff or full content based on configuration\n3. Implement getContentHistory(id: string): Promise<ContentVersion[]>\n4. Add soft delete functionality:\n   - Add deletedAt timestamp field\n   - Implement softDelete(id: string): Promise<void>\n   - Modify all queries to exclude soft-deleted by default\n   - Add includeDeleted option to get methods\n5. Implement restore(id: string): Promise<Content> for recovery\n6. Add cleanup job for permanent deletion after retention period",
-            "status": "pending",
+            "details": "Implement versioning and soft delete:\n1. Create ContentVersion model in Prisma schema:\n   - Store previous versions with parentId reference\n   - Track version number and change metadata\n2. Modify updateContent() to:\n   - Create version snapshot before update\n   - Increment version counter\n   - Store diff or full content based on configuration\n3. Implement getContentHistory(id: string): Promise<ContentVersion[]>\n4. Add soft delete functionality:\n   - Add deletedAt timestamp field\n   - Implement softDelete(id: string): Promise<void>\n   - Modify all queries to exclude soft-deleted by default\n   - Add includeDeleted option to get methods\n5. Implement restore(id: string): Promise<Content> for recovery\n6. Add cleanup job for permanent deletion after retention period\n<info added on 2025-08-21T10:05:37.105Z>\n**Completed Implementation Details:**\n\nSuccessfully implemented content versioning and soft delete functionality with the following components:\n\n1. **ContentVersion Model Creation**:\n   - Added ContentVersion table to Prisma schema with parentId reference, version tracking, and change metadata\n   - Implemented automatic version snapshot creation on content updates\n   - Version history maintains full content snapshots for reliable restoration\n\n2. **Core Methods Implementation**:\n   - `softDelete(id: string)`: Marks content as deleted by setting deletedAt timestamp\n   - `restore(id: string)`: Recovers soft-deleted content by clearing deletedAt field\n   - `getContentHistory(id: string)`: Returns complete version history for any content item\n   - `restoreVersion(contentId: string, versionId: string)`: Restores content to specific historical version\n\n3. **Database Schema Updates**:\n   - Modified Docker init.sql file directly to add versioning tables and soft delete columns\n   - Added deletedAt timestamp field to content table\n   - Created content_versions table with proper foreign key relationships\n   - All database migrations successfully applied through Docker container initialization\n\n4. **Query Modifications**:\n   - Updated all existing queries to exclude soft-deleted content by default\n   - Added includeDeleted parameter to get methods for accessing deleted content when needed\n   - Implemented proper filtering in list and search operations\n\n5. **Testing**:\n   - All unit tests passing for versioning functionality\n   - Soft delete and restore operations fully tested\n   - Version history retrieval and restoration verified\n   - Integration tests confirm proper database schema updates\n</info added on 2025-08-21T10:05:37.105Z>",
+            "status": "done",
             "testStrategy": "Test version creation on updates, soft delete and restore operations, and verify queries correctly filter deleted content"
           },
           {
@@ -552,7 +552,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-20T03:23:16.561Z",
+      "updated": "2025-08-21T10:05:49.522Z",
       "description": "Tasks for master context"
     }
   }

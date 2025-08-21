@@ -4,8 +4,8 @@ import { prisma, performHealthCheck } from '@lighthouse/database';
 import contentRoutes from './routes/content.routes';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const host = process.env.HOST ?? '0.0.0.0';
+const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
 const app = express();
 

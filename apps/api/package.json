@@ -2,6 +2,14 @@
   "name": "@lighthouse/api",
   "version": "1.0.0",
   "description": "Lighthouse API Server",
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "redis": "^5.8.1",
+    "zod": "^4.0.17"
+  },
   "scripts": {
     "build": "nx build api",
     "dev": "nx serve api",

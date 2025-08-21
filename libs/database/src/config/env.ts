@@ -89,7 +89,8 @@ function validateEnv(): Env {
         .filter(
           (issue) =>
             issue.code === 'invalid_type' &&
-            (issue as any).received === 'undefined'
+            (issue as z.ZodIssue & { received?: string }).received ===
+              'undefined'
         )
         .map((issue) => issue.path.join('.'));
 
@@ -98,7 +99,8 @@ function validateEnv(): Env {
           (issue) =>
             !(
               issue.code === 'invalid_type' &&
-              (issue as any).received === 'undefined'
+              (issue as z.ZodIssue & { received?: string }).received ===
+                'undefined'
             )
         )
         .map((issue) => `${issue.path.join('.')}: ${issue.message}`);

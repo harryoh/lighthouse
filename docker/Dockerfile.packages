@@ -1,0 +1,143 @@
+# Multi-stage Dockerfile for Nx Lighthouse applications
+FROM node:20-alpine AS base
+
+# Install build dependencies and pnpm
+RUN apk add --no-cache python3 make g++ && \
+    npm install -g pnpm@8.15.9
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy package files for pnpm workspace
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY nx.json tsconfig.base.json ./
+
+# Copy individual package.json files for each app and lib
+COPY apps/api/package.json ./apps/api/
+COPY apps/admin/package.json ./apps/admin/
+COPY libs/analyzer/package.json ./libs/analyzer/
+COPY libs/crawler-core/package.json ./libs/crawler-core/
+COPY libs/database/package.json ./libs/database/
+
+# Copy Prisma schema before installing dependencies
+COPY prisma/ ./prisma/
+
+# Install all dependencies from root
+RUN pnpm install --frozen-lockfile
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# ========================================
+# Build stage - compile all applications
+# ========================================
+FROM base AS build
+
+# Copy all source files
+COPY apps/ ./apps/
+COPY libs/ ./libs/
+
+# Build all projects with Nx
+RUN pnpm nx run-many --target=build --all --configuration=production
+
+# ========================================
+# API production stage
+# ========================================
+FROM node:20-alpine AS api
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy built API and dependencies
+COPY --from=build --chown=nodejs:nodejs /workspace/dist/apps/api ./
+COPY --from=build --chown=nodejs:nodejs /workspace/dist/libs ./libs
+COPY --from=build --chown=nodejs:nodejs /workspace/node_modules ./node_modules
+COPY --from=build --chown=nodejs:nodejs /workspace/prisma ./prisma
+
+# Copy package.json for scripts
+COPY --from=build --chown=nodejs:nodejs /workspace/dist/apps/api/package.json ./package.json
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Switch to non-root user
+USER nodejs
+
+# Expose API port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if(r.statusCode !== 200) process.exit(1)})" || exit 1
+
+# Start the API server with dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "main.js"]
+
+# ========================================
+# Admin production stage
+# ========================================
+FROM node:20-alpine AS admin
+
+# Install dumb-init
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy Next.js standalone build
+COPY --from=build --chown=nodejs:nodejs /workspace/apps/admin/.next/standalone ./
+COPY --from=build --chown=nodejs:nodejs /workspace/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=build --chown=nodejs:nodejs /workspace/apps/admin/public ./apps/admin/public
+
+# Copy package.json for reference
+COPY --from=build --chown=nodejs:nodejs /workspace/apps/admin/package.json ./apps/admin/package.json
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Switch to non-root user
+USER nodejs
+
+# Expose admin port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/hello', (r) => {if(r.statusCode !== 200) process.exit(1)})" || exit 1
+
+# Start the Next.js server with dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "apps/admin/server.js"]
+
+# ========================================
+# Development stage (optional)
+# ========================================
+FROM base AS development
+
+# Copy all source files
+COPY apps/ ./apps/
+COPY libs/ ./libs/
+
+# Set environment variables for development
+ENV NODE_ENV=development
+
+# Expose both ports
+EXPOSE 3000 3001
+
+# Default command for development
+CMD ["pnpm", "nx", "run-many", "--target=serve", "--all"]

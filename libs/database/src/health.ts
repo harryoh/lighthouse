@@ -18,7 +18,7 @@ export interface ServiceHealth {
   status: 'up' | 'down';
   message?: string;
   responseTime?: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -190,7 +190,10 @@ export async function performHealthCheck(): Promise<HealthCheckResult> {
 /**
  * Express middleware for health check endpoint
  */
-export async function healthCheckHandler(_req: any, res: any) {
+export async function healthCheckHandler(
+  _req: unknown,
+  res: { status: (code: number) => { json: (data: unknown) => void } }
+) {
   try {
     const health = await performHealthCheck();
     const statusCode = health.status === 'healthy' ? 200 : 503;

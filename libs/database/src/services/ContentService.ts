@@ -1,15 +1,21 @@
-import { Content, Prisma, PrismaClient } from '@prisma/client';
+import { Content, ContentVersion, Prisma, PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
 import {
   ContentInput,
   ContentFilters,
   ContentUpdateInput,
+  ContentUpdateInputWithVersion,
   ContentWithRelations,
   PaginationOptions,
   SearchOptions,
   PaginatedResponse,
   ServiceResponse,
   HashOptions,
+  SoftDeleteOptions,
+  RestoreOptions,
+  VersioningOptions,
+  VersionDiff,
+  CleanupOptions,
 } from '../types/content.types';
 import { prisma as defaultPrisma } from '../prisma';
 
@@ -245,11 +251,11 @@ export class ContentService {
   }
 
   /**
-   * Update existing content
+   * Update existing content with versioning
    */
   async updateContent(
     id: string,
-    data: ContentUpdateInput
+    data: ContentUpdateInput | ContentUpdateInputWithVersion
   ): Promise<ServiceResponse<Content>> {
     try {
       // Check if content exists
@@ -264,19 +270,57 @@ export class ContentService {
         };
       }
 
-      // Update content
-      const updatedContent = await this.prisma.content.update({
-        where: { id },
-        data: {
-          ...data,
-          // Regenerate hash if content changed
-          contentHash: this.shouldRegenerateHash(data)
-            ? this.generateContentHash({
-                ...existingContent,
-                ...data,
-              } as ContentInput)
-            : undefined,
-        },
+      // Check if content is soft-deleted
+      if (existingContent.deletedAt) {
+        return {
+          success: false,
+          error: `Cannot update deleted content. Please restore it first.`,
+        };
+      }
+
+      // Extract versioning options if provided
+      const versioningOptions = (data as ContentUpdateInputWithVersion)
+        .versioningOptions;
+      const updateData = { ...data };
+      if ('versioningOptions' in updateData) {
+        delete (updateData as Record<string, unknown>)['versioningOptions'];
+      }
+
+      // Perform update with version creation in transaction
+      const updatedContent = await this.prisma.$transaction(async (tx) => {
+        // Create version record if versioning is enabled (default: true)
+        if (versioningOptions?.createVersion !== false) {
+          await tx.contentVersion.create({
+            data: {
+              contentId: existingContent.id,
+              version: existingContent.version,
+              title: existingContent.title,
+              body: existingContent.body,
+              author: existingContent.author,
+              publishedAt: existingContent.publishedAt,
+              rawHtml: existingContent.rawHtml,
+              contentHash: existingContent.contentHash,
+              changedBy: versioningOptions?.changedBy || null,
+              changeReason: versioningOptions?.changeReason || null,
+            },
+          });
+        }
+
+        // Update content with incremented version
+        return await tx.content.update({
+          where: { id },
+          data: {
+            ...updateData,
+            version: existingContent.version + 1,
+            // Regenerate hash if content changed
+            contentHash: this.shouldRegenerateHash(updateData)
+              ? this.generateContentHash({
+                  ...existingContent,
+                  ...updateData,
+                } as ContentInput)
+              : undefined,
+          },
+        });
       });
 
       return {
@@ -344,9 +388,12 @@ export class ContentService {
    */
   async getContentStats() {
     const [total, bySource, byDate] = await this.prisma.$transaction([
-      this.prisma.content.count(),
+      this.prisma.content.count({
+        where: { deletedAt: null }, // Exclude soft-deleted items
+      }),
       this.prisma.content.groupBy({
         by: ['sourceId'],
+        where: { deletedAt: null },
         _count: {
           _all: true,
         },
@@ -362,6 +409,7 @@ export class ContentService {
           COUNT(*) as count
         FROM contents
         WHERE publishedAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+          AND deletedAt IS NULL
         GROUP BY DATE(publishedAt)
         ORDER BY date DESC
       `,
@@ -372,6 +420,445 @@ export class ContentService {
       bySource,
       byDate,
     };
+  }
+
+  /**
+   * Soft delete content
+   */
+  async softDelete(
+    id: string,
+    options?: SoftDeleteOptions
+  ): Promise<ServiceResponse<Content>> {
+    try {
+      // Check if content exists and is not already deleted
+      const existingContent = await this.prisma.content.findUnique({
+        where: { id },
+      });
+
+      if (!existingContent) {
+        return {
+          success: false,
+          error: `Content not found with ID: ${id}`,
+        };
+      }
+
+      if (existingContent.deletedAt) {
+        return {
+          success: false,
+          error: `Content is already deleted`,
+        };
+      }
+
+      // If permanent delete is requested, perform hard delete
+      if (options?.permanent) {
+        await this.prisma.content.delete({
+          where: { id },
+        });
+        return {
+          success: true,
+          data: existingContent, // Return the content before deletion
+        };
+      }
+
+      // Perform soft delete
+      const deletedContent = await this.prisma.content.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+          deletedBy: options?.deletedBy || null,
+        },
+      });
+
+      return {
+        success: true,
+        data: deletedContent,
+      };
+    } catch (error) {
+      console.error('Error soft deleting content:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to soft delete content',
+      };
+    }
+  }
+
+  /**
+   * Restore soft-deleted content
+   */
+  async restore(
+    id: string,
+    _options?: RestoreOptions // Prefixed with _ to indicate unused parameter
+  ): Promise<ServiceResponse<Content>> {
+    try {
+      // Check if content exists and is deleted
+      const existingContent = await this.prisma.content.findUnique({
+        where: { id },
+      });
+
+      if (!existingContent) {
+        return {
+          success: false,
+          error: `Content not found with ID: ${id}`,
+        };
+      }
+
+      if (!existingContent.deletedAt) {
+        return {
+          success: false,
+          error: `Content is not deleted`,
+        };
+      }
+
+      // Restore the content
+      // Note: _options?.restoredBy could be used for audit logging if needed
+      const restoredContent = await this.prisma.content.update({
+        where: { id },
+        data: {
+          deletedAt: null,
+          deletedBy: null,
+        },
+      });
+
+      return {
+        success: true,
+        data: restoredContent,
+      };
+    } catch (error) {
+      console.error('Error restoring content:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to restore content',
+      };
+    }
+  }
+
+  /**
+   * Permanently delete content (hard delete after retention period)
+   */
+  async permanentlyDelete(id: string): Promise<ServiceResponse<boolean>> {
+    try {
+      // This is the original hard delete
+      return await this.deleteContent(id);
+    } catch (error) {
+      console.error('Error permanently deleting content:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to permanently delete content',
+      };
+    }
+  }
+
+  /**
+   * Clean up soft-deleted content older than retention period
+   */
+  async cleanupDeletedContent(
+    options: CleanupOptions = {}
+  ): Promise<ServiceResponse<number>> {
+    const { retentionDays = 30, batchSize = 100 } = options;
+
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+      // Find content to delete
+      const contentToDelete = await this.prisma.content.findMany({
+        where: {
+          deletedAt: {
+            not: null,
+            lt: cutoffDate,
+          },
+        },
+        select: { id: true },
+        take: batchSize,
+      });
+
+      if (contentToDelete.length === 0) {
+        return {
+          success: true,
+          data: 0,
+        };
+      }
+
+      // Delete in transaction
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Delete related versions first
+        await tx.contentVersion.deleteMany({
+          where: {
+            contentId: {
+              in: contentToDelete.map((c) => c.id),
+            },
+          },
+        });
+
+        // Delete content
+        const deleted = await tx.content.deleteMany({
+          where: {
+            id: {
+              in: contentToDelete.map((c) => c.id),
+            },
+          },
+        });
+
+        return deleted.count;
+      });
+
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error cleaning up deleted content:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to cleanup deleted content',
+      };
+    }
+  }
+
+  /**
+   * Get content version history
+   */
+  async getContentHistory(
+    contentId: string
+  ): Promise<ServiceResponse<ContentVersion[]>> {
+    try {
+      // Check if content exists
+      const content = await this.prisma.content.findUnique({
+        where: { id: contentId },
+      });
+
+      if (!content) {
+        return {
+          success: false,
+          error: `Content not found with ID: ${contentId}`,
+        };
+      }
+
+      // Get all versions
+      const versions = await this.prisma.contentVersion.findMany({
+        where: { contentId },
+        orderBy: { version: 'desc' },
+      });
+
+      return {
+        success: true,
+        data: versions,
+      };
+    } catch (error) {
+      console.error('Error getting content history:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to get content history',
+      };
+    }
+  }
+
+  /**
+   * Get specific content version
+   */
+  async getContentVersion(
+    contentId: string,
+    version: number
+  ): Promise<ServiceResponse<ContentVersion>> {
+    try {
+      const contentVersion = await this.prisma.contentVersion.findUnique({
+        where: {
+          contentId_version: {
+            contentId,
+            version,
+          },
+        },
+      });
+
+      if (!contentVersion) {
+        return {
+          success: false,
+          error: `Version ${version} not found for content ID: ${contentId}`,
+        };
+      }
+
+      return {
+        success: true,
+        data: contentVersion,
+      };
+    } catch (error) {
+      console.error('Error getting content version:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to get content version',
+      };
+    }
+  }
+
+  /**
+   * Restore content to a specific version
+   */
+  async restoreVersion(
+    contentId: string,
+    version: number,
+    options?: VersioningOptions
+  ): Promise<ServiceResponse<Content>> {
+    try {
+      // Get the version to restore
+      const versionToRestore = await this.prisma.contentVersion.findUnique({
+        where: {
+          contentId_version: {
+            contentId,
+            version,
+          },
+        },
+      });
+
+      if (!versionToRestore) {
+        return {
+          success: false,
+          error: `Version ${version} not found for content ID: ${contentId}`,
+        };
+      }
+
+      // Get current content
+      const currentContent = await this.prisma.content.findUnique({
+        where: { id: contentId },
+      });
+
+      if (!currentContent) {
+        return {
+          success: false,
+          error: `Content not found with ID: ${contentId}`,
+        };
+      }
+
+      // Restore in transaction
+      const restoredContent = await this.prisma.$transaction(async (tx) => {
+        // Save current version before restoring
+        if (options?.createVersion !== false) {
+          await tx.contentVersion.create({
+            data: {
+              contentId: currentContent.id,
+              version: currentContent.version,
+              title: currentContent.title,
+              body: currentContent.body,
+              author: currentContent.author,
+              publishedAt: currentContent.publishedAt,
+              rawHtml: currentContent.rawHtml,
+              contentHash: currentContent.contentHash,
+              changedBy: options?.changedBy || null,
+              changeReason:
+                options?.changeReason || `Restored to version ${version}`,
+            },
+          });
+        }
+
+        // Restore content
+        return await tx.content.update({
+          where: { id: contentId },
+          data: {
+            title: versionToRestore.title,
+            body: versionToRestore.body,
+            author: versionToRestore.author,
+            publishedAt: versionToRestore.publishedAt,
+            rawHtml: versionToRestore.rawHtml,
+            contentHash: versionToRestore.contentHash,
+            version: currentContent.version + 1,
+          },
+        });
+      });
+
+      return {
+        success: true,
+        data: restoredContent,
+      };
+    } catch (error) {
+      console.error('Error restoring version:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to restore version',
+      };
+    }
+  }
+
+  /**
+   * Compare two versions
+   */
+  async compareVersions(
+    contentId: string,
+    version1: number,
+    version2: number
+  ): Promise<ServiceResponse<VersionDiff>> {
+    try {
+      // Get both versions
+      const [v1, v2] = await Promise.all([
+        this.getContentVersion(contentId, version1),
+        this.getContentVersion(contentId, version2),
+      ]);
+
+      if (!v1.success || !v1.data) {
+        return {
+          success: false,
+          error: `Version ${version1} not found`,
+        };
+      }
+
+      if (!v2.success || !v2.data) {
+        return {
+          success: false,
+          error: `Version ${version2} not found`,
+        };
+      }
+
+      const changes: VersionDiff['changes'] = [];
+
+      // Compare fields
+      const fieldsToCompare: (keyof ContentVersion)[] = [
+        'title',
+        'body',
+        'author',
+        'publishedAt',
+      ];
+
+      for (const field of fieldsToCompare) {
+        if (v1.data[field] !== v2.data[field]) {
+          changes.push({
+            field,
+            oldValue: v1.data[field],
+            newValue: v2.data[field],
+          });
+        }
+      }
+
+      return {
+        success: true,
+        data: {
+          version1,
+          version2,
+          changes,
+        },
+      };
+    } catch (error) {
+      console.error('Error comparing versions:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to compare versions',
+      };
+    }
   }
 
   // Private helper methods
@@ -432,23 +919,33 @@ export class ContentService {
   }
 
   private buildWhereClause(filters?: ContentFilters): Prisma.ContentWhereInput {
-    if (!filters) return {};
-
     const where: Prisma.ContentWhereInput = {};
 
-    if (filters.sourceId) where.sourceId = filters.sourceId;
-    if (filters.url) where.url = filters.url;
-    if (filters.author) where.author = filters.author;
-    if (filters.contentHash) where.contentHash = filters.contentHash;
+    // Handle soft delete filtering
+    if (filters?.onlyDeleted) {
+      // Only show deleted items
+      where.deletedAt = { not: null };
+    } else if (!filters?.includeDeleted) {
+      // By default, exclude deleted items
+      where.deletedAt = null;
+    }
+    // If includeDeleted is true, don't add any deletedAt filter
 
-    // Date range filters
-    if (filters.publishedAtFrom || filters.publishedAtTo) {
-      where.publishedAt = {};
-      if (filters.publishedAtFrom) {
-        where.publishedAt.gte = filters.publishedAtFrom;
-      }
-      if (filters.publishedAtTo) {
-        where.publishedAt.lte = filters.publishedAtTo;
+    if (filters) {
+      if (filters.sourceId) where.sourceId = filters.sourceId;
+      if (filters.url) where.url = filters.url;
+      if (filters.author) where.author = filters.author;
+      if (filters.contentHash) where.contentHash = filters.contentHash;
+
+      // Date range filters
+      if (filters.publishedAtFrom || filters.publishedAtTo) {
+        where.publishedAt = {};
+        if (filters.publishedAtFrom) {
+          where.publishedAt.gte = filters.publishedAtFrom;
+        }
+        if (filters.publishedAtTo) {
+          where.publishedAt.lte = filters.publishedAtTo;
+        }
       }
     }
 

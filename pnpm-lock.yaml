@@ -230,7 +230,26 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
-  apps/api: {}
+  apps/api:
+    dependencies:
+      '@prisma/client':
+        specifier: ^6.14.0
+        version: 6.14.0(prisma@6.14.0)(typescript@5.9.2)
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
+      express:
+        specifier: ^4.21.2
+        version: 4.21.2
+      redis:
+        specifier: ^5.8.1
+        version: 5.8.1
+      zod:
+        specifier: ^4.0.17
+        version: 4.0.17
 
   libs/analyzer:
     dependencies:
@@ -289,6 +308,9 @@ importers:
       redis:
         specifier: ^5.8.1
         version: 5.8.1
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
       zod:
         specifier: ^4.0.17
         version: 4.0.17
