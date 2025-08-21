@@ -12,6 +12,7 @@ import {
   CrawlJobProcessor,
   QueueConfig,
   QueueEventType,
+  ScheduledCrawlJobData,
 } from './QueueInterface';
 
 export class QueueManager implements IQueueManager, IQueueEventListener {
@@ -272,5 +273,224 @@ export class QueueManager implements IQueueManager, IQueueEventListener {
     await this.queueEvents.close();
     await this.queue.close();
     this.logger.info('Queue manager closed');
+  }
+
+  /**
+   * Add a scheduled crawl job
+   */
+  public async addScheduledJob(
+    data: ScheduledCrawlJobData
+  ): Promise<Job<ScheduledCrawlJobData, CrawlJobResult>> {
+    // Calculate next run time based on cron expression
+    const jobOptions = {
+      repeat: {
+        pattern: data.schedule,
+        tz: data.timezone || 'UTC',
+      },
+      priority: data.priority,
+      attempts: data.attempts || this.config.defaultJobOptions?.attempts,
+    };
+
+    const job = await this.queue.add(
+      `scheduled-${data.sourceId}`,
+      data as unknown as CrawlJobData,
+      jobOptions
+    );
+
+    this.logger.info(`Scheduled job ${job.id} added`, {
+      sourceId: data.sourceId,
+      schedule: data.schedule,
+      timezone: data.timezone,
+    });
+
+    return job as unknown as Job<ScheduledCrawlJobData, CrawlJobResult>;
+  }
+
+  /**
+   * Update schedule for an existing job
+   */
+  public async updateSchedule(
+    jobId: string,
+    schedule: string,
+    timezone?: string
+  ): Promise<void> {
+    const job = await this.queue.getJob(jobId);
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+
+    // Remove old job
+    await job.remove();
+
+    // Create new job with updated schedule
+    const data = job.data as unknown as ScheduledCrawlJobData;
+    data.schedule = schedule;
+    if (timezone) {
+      data.timezone = timezone;
+    }
+
+    await this.addScheduledJob(data);
+    this.logger.info(`Updated schedule for job ${jobId}`);
+  }
+
+  /**
+   * Get all scheduled jobs
+   */
+  public async getScheduledJobs(): Promise<
+    Job<ScheduledCrawlJobData, CrawlJobResult>[]
+  > {
+    const jobs = await this.queue.getRepeatableJobs();
+    const scheduledJobs: Job<ScheduledCrawlJobData, CrawlJobResult>[] = [];
+
+    for (const repeatableJob of jobs) {
+      if (repeatableJob.id) {
+        const job = await this.queue.getJob(repeatableJob.id);
+        if (job) {
+          scheduledJobs.push(
+            job as unknown as Job<ScheduledCrawlJobData, CrawlJobResult>
+          );
+        }
+      }
+    }
+
+    return scheduledJobs;
+  }
+
+  /**
+   * Move a failed job to dead letter queue
+   */
+  public async moveToDeadLetter(
+    job: Job<CrawlJobData, CrawlJobResult>,
+    dlqName?: string
+  ): Promise<void> {
+    const deadLetterQueueName = dlqName || `${this.config.name}-dlq`;
+
+    // Create dead letter queue if it doesn't exist
+    const dlq = new Queue(deadLetterQueueName, {
+      connection: this.config.connection,
+    });
+
+    // Add job to DLQ with original data and failure information
+    await dlq.add('failed-job', {
+      originalJobId: job.id,
+      originalData: job.data,
+      failedReason: job.failedReason,
+      attemptsMade: job.attemptsMade,
+      stacktrace: job.stacktrace,
+      movedToDLQAt: new Date(),
+    });
+
+    // Remove from original queue
+    await job.remove();
+
+    this.logger.warn(`Job ${job.id} moved to dead letter queue`, {
+      sourceId: job.data.sourceId,
+      failedReason: job.failedReason,
+    });
+
+    await dlq.close();
+  }
+
+  /**
+   * Retry a job from dead letter queue
+   */
+  public async retryDeadLetterJob(
+    dlqJobId: string,
+    dlqName?: string
+  ): Promise<void> {
+    const deadLetterQueueName = dlqName || `${this.config.name}-dlq`;
+
+    const dlq = new Queue(deadLetterQueueName, {
+      connection: this.config.connection,
+    });
+
+    const dlqJob = await dlq.getJob(dlqJobId);
+    if (!dlqJob) {
+      throw new Error(`DLQ job ${dlqJobId} not found`);
+    }
+
+    // Extract original data from DLQ job
+    const dlqData = dlqJob.data as any;
+    const originalData = dlqData.originalData as CrawlJobData;
+
+    // Add job back to main queue
+    await this.addCrawlJob({
+      ...originalData,
+      attempts: 1, // Reset attempts for retry
+    });
+
+    // Remove from DLQ
+    await dlqJob.remove();
+
+    this.logger.info(`Retried DLQ job ${dlqJobId}`, {
+      originalJobId: dlqData.originalJobId,
+      sourceId: originalData.sourceId,
+    });
+
+    await dlq.close();
+  }
+
+  /**
+   * Get dead letter queue jobs
+   */
+  public async getDeadLetterJobs(dlqName?: string): Promise<Job[]> {
+    const deadLetterQueueName = dlqName || `${this.config.name}-dlq`;
+
+    const dlq = new Queue(deadLetterQueueName, {
+      connection: this.config.connection,
+    });
+
+    const jobs = await dlq.getJobs([
+      'waiting',
+      'active',
+      'completed',
+      'failed',
+    ]);
+
+    await dlq.close();
+    return jobs;
+  }
+
+  /**
+   * Clear dead letter queue
+   */
+  public async clearDeadLetterQueue(dlqName?: string): Promise<void> {
+    const deadLetterQueueName = dlqName || `${this.config.name}-dlq`;
+
+    const dlq = new Queue(deadLetterQueueName, {
+      connection: this.config.connection,
+    });
+
+    await dlq.obliterate({ force: true });
+
+    this.logger.info(`Cleared dead letter queue: ${deadLetterQueueName}`);
+
+    await dlq.close();
+  }
+
+  /**
+   * Get extended metrics including scheduled and DLQ jobs
+   */
+  public async getExtendedMetrics(): Promise<{
+    basic: {
+      waiting: number;
+      active: number;
+      completed: number;
+      failed: number;
+      delayed: number;
+      paused: boolean;
+    };
+    scheduled: number;
+    deadLetter: number;
+  }> {
+    const basicMetrics = await this.getMetrics();
+    const scheduledJobs = await this.getScheduledJobs();
+    const dlqJobs = await this.getDeadLetterJobs();
+
+    return {
+      basic: basicMetrics,
+      scheduled: scheduledJobs.length,
+      deadLetter: dlqJobs.length,
+    };
   }
 }

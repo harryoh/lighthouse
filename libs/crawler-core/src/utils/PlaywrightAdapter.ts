@@ -3,14 +3,13 @@
  * Provides efficient browser instance management and specialized methods for news sites
  */
 
-import {
-  Browser,
-  BrowserContext,
-  Page,
-  chromium,
-  firefox,
-  webkit,
-} from 'playwright';
+// Dynamic import to avoid bundling playwright
+type Browser = any;
+type BrowserContext = any;
+type Page = any;
+let chromium: any;
+let firefox: any;
+let webkit: any;
 import * as winston from 'winston';
 
 export interface PlaywrightConfig {
@@ -86,6 +85,14 @@ export class PlaywrightAdapter {
     }
 
     try {
+      // Dynamic import playwright to avoid bundling issues
+      if (!chromium) {
+        const playwright = await import('playwright');
+        chromium = playwright.chromium;
+        firefox = playwright.firefox;
+        webkit = playwright.webkit;
+      }
+
       this.logger.debug('Initializing Playwright browser', {
         browserType: this.config.browserType,
         headless: this.config.headless,

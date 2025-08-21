@@ -13,6 +13,7 @@
     "bullmq": "^5.58.0",
     "cheerio": "^1.0.0",
     "date-fns": "^4.1.0",
+    "ioredis": "^5.7.0",
     "playwright": "^1.49.1",
     "robots-parser": "^3.0.1",
     "tslib": "^2.3.0",

@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { prisma, performHealthCheck } from '@lighthouse/database';
 import contentRoutes from './routes/content.routes';
+import queueRoutes from './routes/queue.routes';
+import { queueService } from './services/queue.service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 const host = process.env.HOST ?? '0.0.0.0';
@@ -24,9 +26,37 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Health check endpoint
 app.get('/health', async (_req, res) => {
-  const healthStatus = await performHealthCheck();
-  const status = healthStatus.status === 'healthy' ? 200 : 503;
-  res.status(status).json(healthStatus);
+  const dbHealth = await performHealthCheck();
+
+  // Get queue health
+  let queueHealth: { status: string; queues: any[] } = {
+    status: 'unknown',
+    queues: [],
+  };
+  try {
+    const queues = await queueService.getAllQueuesHealth();
+    queueHealth = {
+      status: queues.every((q) => q.isHealthy) ? 'healthy' : 'unhealthy',
+      queues,
+    };
+  } catch {
+    queueHealth = {
+      status: 'unhealthy',
+      queues: [],
+    };
+  }
+
+  const overallStatus =
+    dbHealth.status === 'healthy' && queueHealth.status === 'healthy'
+      ? 'healthy'
+      : 'unhealthy';
+  const status = overallStatus === 'healthy' ? 200 : 503;
+
+  res.status(status).json({
+    status: overallStatus,
+    database: dbHealth,
+    queue: queueHealth,
+  });
 });
 
 // Root endpoint
@@ -37,12 +67,14 @@ app.get('/', (_req, res) => {
     endpoints: {
       health: '/health',
       contents: '/api/contents',
+      queues: '/api/queues',
     },
   });
 });
 
 // API Routes
 app.use('/api/contents', contentRoutes);
+app.use('/api/queues', queueRoutes);
 
 // Error handlers (must be last)
 app.use(notFoundHandler);
@@ -60,6 +92,15 @@ const server = app.listen(port, host, async () => {
     console.error('❌ Database connection failed:', error);
     process.exit(1);
   }
+
+  // Initialize queue system
+  try {
+    await queueService.initialize();
+    console.log('✅ Queue system initialized successfully');
+  } catch (error) {
+    console.error('⚠️ Queue system initialization failed:', error);
+    // Don't exit - queues are optional for now
+  }
 });
 
 process.on('SIGTERM', async () => {
@@ -67,6 +108,7 @@ process.on('SIGTERM', async () => {
   server.close(() => {
     console.log('Server closed');
   });
+  await queueService.shutdown();
   await prisma.$disconnect();
   process.exit(0);
 });
@@ -76,6 +118,7 @@ process.on('SIGINT', async () => {
   server.close(() => {
     console.log('Server closed');
   });
+  await queueService.shutdown();
   await prisma.$disconnect();
   process.exit(0);
 });

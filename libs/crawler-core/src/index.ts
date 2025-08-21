@@ -15,3 +15,16 @@ export { NewsCrawler } from './crawlers/NewsCrawler';
 // Export queue interfaces and implementation
 export * from './queue/QueueInterface';
 export { QueueManager } from './queue/QueueManager';
+export { QueueFactory } from './queue/QueueFactory';
+export {
+  RedisConnectionManager,
+  type RedisConfig,
+} from './queue/RedisConnectionManager';
+export {
+  QueueInitializer,
+  type QueueSystemConfig,
+  type JobProcessors,
+} from './queue/QueueInitializer';
+
+// Export job processors
+export * from './queue/processors';

@@ -24,7 +24,16 @@
           "outExtension": {
             ".js": ".js"
           },
-          "external": []
+          "external": [
+            "playwright",
+            "playwright-core",
+            "playwright-chromium",
+            "playwright-firefox",
+            "playwright-webkit",
+            "chromium-bidi",
+            "chromium-bidi/lib/cjs/bidiMapper/BidiMapper",
+            "chromium-bidi/lib/cjs/cdp/CdpConnection"
+          ]
         }
       },
       "configurations": {
@@ -34,7 +43,17 @@
             "sourcemap": false,
             "outExtension": {
               ".js": ".js"
-            }
+            },
+            "external": [
+              "playwright",
+              "playwright-core",
+              "playwright-chromium",
+              "playwright-firefox",
+              "playwright-webkit",
+              "chromium-bidi",
+              "chromium-bidi/lib/cjs/bidiMapper/BidiMapper",
+              "chromium-bidi/lib/cjs/cdp/CdpConnection"
+            ]
           }
         }
       }
