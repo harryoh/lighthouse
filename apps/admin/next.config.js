@@ -1,32 +1,17 @@
-//@ts-check
-
-const { composePlugins, withNx } = require('@nx/next');
-
-/**
- * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
- **/
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use this to set Nx-specific options
-  // See: https://nx.dev/recipes/next/next-config-setup
-  nx: {},
-  // Disable static optimization during build
-  typescript: {
-    ignoreBuildErrors: false,
-  },
+  reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable all static optimization
-  trailingSlash: false,
-  generateEtags: false,
-  // Enable standalone output for Docker
-  output: 'standalone',
-  outputFileTracingRoot: require('path').join(__dirname, '../../'),
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  // Enable standalone output for Docker production builds
+  ...(process.env.NODE_ENV === 'production' && {
+    output: 'standalone',
+    outputFileTracingRoot: require('path').join(__dirname, '../../'),
+  }),
 };
 
-const plugins = [
-  // Add more Next.js plugins to this list if needed.
-  withNx,
-];
-
-module.exports = composePlugins(...plugins)(nextConfig);
+module.exports = nextConfig;

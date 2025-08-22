@@ -367,7 +367,7 @@
           2,
           5
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -375,7 +375,7 @@
             "description": "Install and configure BullMQ with Redis connection, create queue configuration module, and establish connection pooling for job queue system",
             "dependencies": [],
             "details": "1. Install packages: npm install bullmq ioredis\n2. Create src/queue/config/redis.config.ts with Redis connection settings (host, port, password from env)\n3. Implement QueueManager singleton class to manage BullMQ queues\n4. Create queue names enum: CRAWL_QUEUE, SCHEDULED_QUEUE, ANALYSIS_QUEUE\n5. Setup connection pool with retry logic and health checks\n6. Add Redis connection error handling and reconnection strategy\n7. Create queue initialization script that runs on application startup",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test Redis connection with mock server, verify queue creation, test connection pool behavior under load, validate error handling and reconnection"
           },
           {
@@ -386,7 +386,7 @@
               "6.1"
             ],
             "details": "1. Create src/queue/types/job.types.ts with base JobData interface\n2. Define CrawlJob interface: { sourceId, url, depth, priority, retryCount }\n3. Define ScheduledCrawlJob: extends CrawlJob with { cronExpression, timezone, nextRun }\n4. Define AnalysisJob: { contentId, analysisType, priority, metadata }\n5. Create Zod schemas for job data validation\n6. Define JobPriority enum: CRITICAL=1, HIGH=2, NORMAL=3, LOW=4\n7. Create JobStatus enum: PENDING, ACTIVE, COMPLETED, FAILED, DELAYED\n8. Implement job data sanitization and validation helpers",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test job type validation with valid and invalid data, test priority ordering logic, verify schema validation catches malformed data"
           },
           {
@@ -397,17 +397,17 @@
               "6.2"
             ],
             "details": "1. Create src/queue/processors/CrawlProcessor.ts implementing Worker from BullMQ\n2. Implement process method with try-catch blocks and structured error logging\n3. Add exponential backoff retry: attempts=3, backoff={ type: 'exponential', delay: 2000 }\n4. Implement progress tracking: job.updateProgress(percentage) at key stages\n5. Create ScheduledCrawlProcessor extending CrawlProcessor with next run scheduling\n6. Implement AnalysisProcessor with content fetching and analysis logic\n7. Add result storage to database with job execution metadata\n8. Implement graceful shutdown handlers for all processors\n9. Create processor registry for dynamic processor selection",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test processor error handling with forced failures, verify retry mechanism with time manipulation, test progress updates, validate result storage"
           },
           {
             "id": 4,
             "title": "Build Job Scheduler with Cron Support",
-            "description": "Implement scheduling system using BullMQ's repeatable jobs feature with cron expressions, timezone support, and dynamic schedule management",
+            "description": "Implement scheduling system using BullMQ's repeatable jobs feature with cron expressions, timezone support, and dynamic schedule management [Updated: 2025. 8. 22.]",
             "dependencies": [
               "6.3"
             ],
-            "details": "1. Create src/queue/scheduler/JobScheduler.ts class\n2. Implement addScheduledJob() method using queue.add() with repeat option\n3. Parse and validate cron expressions using cron-parser library\n4. Add timezone support with moment-timezone for accurate scheduling\n5. Create getScheduledJobs() to list all repeatable jobs\n6. Implement updateSchedule() to modify existing cron schedules\n7. Add removeScheduledJob() with proper cleanup\n8. Create schedule conflict detection to prevent duplicate schedules\n9. Implement schedule history tracking in database\n10. Add next run time calculation and display utilities",
+            "details": "1. Create src/queue/scheduler/JobScheduler.ts class\n2. Implement addScheduledJob() method using queue.add() with repeat option\n3. Parse and validate cron expressions using cron-parser library\n4. Add timezone support with moment-timezone for accurate scheduling\n5. Create getScheduledJobs() to list all repeatable jobs\n6. Implement updateSchedule() to modify existing cron schedules\n7. Add removeScheduledJob() with proper cleanup\n8. Create schedule conflict detection to prevent duplicate schedules\n9. Implement schedule history tracking in database\n10. Add next run time calculation and display utilities\n<info added on 2025-08-22T05:52:06.032Z>\nSetting up crawling test environment and creating sample scripts - Verify Docker environment, create API server startup script, write actual Korean news site crawling test script:\n\n11. Set up crawling test environment by verifying Docker containers are running (MySQL, Redis, LocalStack)\n12. Create docker/scripts/start-crawl-test.sh script to start API server and required services\n13. Write test/crawl-samples/korean-news-test.ts script for testing actual Korean news sites\n14. Target test sites: Naver News (news.naver.com) and Yonhap News (yna.co.kr) \n15. Implement test script with BaseCrawler to fetch article list from main page\n16. Parse and extract article URLs, titles, and publication dates from list page\n17. Test individual article crawling with content extraction (title, body, author, date)\n18. Add rate limiting of 1 request per second to respect server load\n19. Create test result validation to verify extracted data completeness\n20. Generate crawl test report showing success rate, parsing accuracy, and performance metrics\n</info added on 2025-08-22T05:52:06.032Z>",
             "status": "pending",
             "testStrategy": "Test cron expression parsing, verify scheduled job execution timing, test timezone conversions, validate schedule updates and removals"
           },
@@ -552,7 +552,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-21T10:05:49.522Z",
+      "updated": "2025-08-22T05:51:20.831Z",
       "description": "Tasks for master context"
     }
   }

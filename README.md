@@ -71,14 +71,14 @@ Lighthouse는 한국의 다양한 온라인 플랫폼(뉴스, 커뮤니티, SNS)
 lighthouse/
 ├── apps/                    # 애플리케이션
 │   ├── api/                # REST API 서버
-│   └── dashboard/          # 관리자 대시보드
+│   └── admin/              # 관리자 대시보드
 ├── libs/                   # 공유 라이브러리
 │   ├── crawler-core/       # 크롤러 프레임워크
 │   ├── database/          # Prisma & DB 로직
-│   └── analyzer/          # NLP 분석 엔진
+│   └── shared/            # 공유 유틸리티
 ├── docker/                # Docker 설정
 │   ├── docker-compose.yml
-│   └── init.sql
+│   └── scripts/
 ├── prisma/               # 데이터베이스 스키마
 │   ├── schema.prisma
 │   └── migrations/
@@ -141,11 +141,21 @@ pnpm nx run-many --target=build --all
 pnpm nx serve api
 ```
 
-### 5. 첫 크롤러 실행
+### 5. 크롤링 테스트
 
 ```bash
-# 테스트 크롤링 실행
-pnpm nx run crawler-core:crawl --source=test-news
+# Docker Compose로 모든 서비스 시작
+cd docker
+docker-compose up -d
+
+# API 서버 시작 (별도 터미널)
+pnpm nx serve api
+
+# 테스트 크롤링 실행 (API 호출)
+curl -X POST http://localhost:3001/api/crawl/test
+
+# 크롤링 상태 모니터링
+open http://localhost:3001/admin/queues
 ```
 
 ## 📊 데이터베이스 스키마
@@ -163,10 +173,12 @@ pnpm nx run crawler-core:crawl --source=test-news
 ### Phase 1: MVP ✅ (진행중)
 
 - [x] 프로젝트 인프라 설정
-- [ ] 데이터베이스 스키마 구현
-- [ ] BaseCrawler 프레임워크
-- [ ] 단일 뉴스 사이트 크롤러
-- [ ] 기본 Admin UI
+- [x] 데이터베이스 스키마 구현
+- [x] BaseCrawler 프레임워크
+- [x] 단일 뉴스 사이트 크롤러
+- [x] 기본 Admin UI
+- [x] Job Queue 시스템 (BullMQ)
+- [x] Bull Board 모니터링
 
 ### Phase 2: 멀티 소스 지원
 
@@ -236,12 +248,28 @@ Content-Type: application/json
 ### 크롤링 작업
 
 ```http
-POST /api/jobs/crawl
-Authorization: Bearer <token>
+# 테스트 크롤링 실행
+POST /api/crawl/test
 
+# 배치 크롤링
+POST /api/crawl/test-batch
 {
-  "sourceId": "uuid",
-  "priority": "high"
+  "urls": [
+    "https://www.yna.co.kr",
+    "https://www.hani.co.kr"
+  ]
+}
+
+# 큐에 크롤링 작업 추가
+POST /api/queues/crawl/jobs
+{
+  "sourceId": "test-1",
+  "source": {
+    "url": "https://example.com",
+    "type": "NEWS",
+    "name": "Example News"
+  },
+  "priority": 5
 }
 ```
 

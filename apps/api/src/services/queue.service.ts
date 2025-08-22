@@ -33,9 +33,6 @@ class QueueService {
     }
 
     try {
-      // Initialize queue factory
-      this.queueFactory = new QueueFactory();
-
       // Initialize queue system
       this.queueInitializer = new QueueInitializer();
       const config = {
@@ -47,6 +44,9 @@ class QueueService {
         },
       };
       await this.queueInitializer.initialize(config);
+
+      // Get the queue factory from the initializer (not create a new one)
+      this.queueFactory = this.queueInitializer.getQueueFactory();
 
       this.initialized = true;
       console.log('✅ Queue system initialized successfully');
@@ -68,7 +68,7 @@ class QueueService {
       throw new Error('Queue system not initialized');
     }
 
-    const queue = this.queueFactory.getQueue('crawl');
+    const queue = this.queueFactory.getQueue('lighthouse-crawl');
     if (!queue) {
       throw new Error('Crawl queue not found');
     }
@@ -87,7 +87,7 @@ class QueueService {
       throw new Error('Queue system not initialized');
     }
 
-    const queue = this.queueFactory.getQueue('analysis');
+    const queue = this.queueFactory.getQueue('lighthouse-analysis');
     if (!queue) {
       throw new Error('Analysis queue not found');
     }
@@ -140,14 +140,28 @@ class QueueService {
       throw new Error('Queue system not initialized');
     }
 
-    const queueNames = ['crawl', 'analysis', 'scheduled', 'dead-letter'];
+    // FIXED: Removed DLQ from health check as it's not enabled
+    const queueNames = [
+      'lighthouse-crawl',
+      'lighthouse-analysis',
+      'lighthouse-scheduled',
+    ];
+
     const healthStatuses = await Promise.all(
       queueNames.map(async (name) => {
         try {
-          return await this.getQueueHealth(name);
+          const health = await this.getQueueHealth(name);
+          // Simplify the queue name for display
+          const simpleName = name
+            .replace('lighthouse-', '')
+            .replace('-dlq', 'dead-letter');
+          return { ...health, name: simpleName };
         } catch (error) {
+          const simpleName = name
+            .replace('lighthouse-', '')
+            .replace('-dlq', 'dead-letter');
           return {
-            name,
+            name: simpleName,
             error: error instanceof Error ? error.message : 'Unknown error',
             isHealthy: false,
           };

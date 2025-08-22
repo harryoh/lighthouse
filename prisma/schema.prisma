@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Source configuration for crawling targets
+model Source {
+  id        String       @id @default(cuid())
+  name      String       @db.VarChar(100)
+  url       String       @unique @db.VarChar(255)
+  type      SourceType
+  config    Json
+  status    SourceStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  contents Content[]
+
+  @@index([status])
+  @@index([type])
+  @@map("sources")
+}
+
+// Main content storage with versioning and soft delete
+model Content {
+  id          String    @id @default(cuid())
+  sourceId    String
+  url         String    @unique @db.VarChar(500)
+  title       String    @db.VarChar(500)
+  body        String    @db.Text
+  author      String?   @db.VarChar(100)
+  publishedAt DateTime
+  rawHtml     String    @db.LongText
+  contentHash String    @db.VarChar(64)
+  version     Int       @default(1)
+  deletedAt   DateTime?
+  deletedBy   String?   @db.VarChar(100)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  // Relations
+  source    Source           @relation(fields: [sourceId], references: [id])
+  analyses  Analysis[]
+  versions  ContentVersion[]
+
+  @@index([sourceId, publishedAt])
+  @@index([contentHash])
+  @@index([publishedAt])
+  @@index([deletedAt])
+  @@map("contents")
+}
+
+// Content version history
+model ContentVersion {
+  id           String   @id @default(cuid())
+  contentId    String
+  version      Int
+  title        String   @db.VarChar(500)
+  body         String   @db.Text
+  author       String?  @db.VarChar(100)
+  publishedAt  DateTime
+  rawHtml      String   @db.LongText
+  contentHash  String   @db.VarChar(64)
+  changedBy    String?  @db.VarChar(100)
+  changedAt    DateTime @default(now())
+  changeReason String?  @db.Text
+
+  // Relations
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, version])
+  @@index([contentId, version])
+  @@index([changedAt])
+  @@map("content_versions")
+}
+
+// Analysis results for content
+model Analysis {
+  id         String       @id @default(cuid())
+  contentId  String
+  type       AnalysisType
+  result     Json
+  score      Float?
+  analyzedAt DateTime     @default(now())
+
+  // Relations
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, type])
+  @@index([type])
+  @@map("analyses")
+}
+
+// User management
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
+  @@map("users")
+}
+
+// Job tracking for background tasks
+model Job {
+  id          String    @id @default(cuid())
+  type        JobType
+  status      JobStatus @default(PENDING)
+  data        Json
+  result      Json?
+  error       String?   @db.Text
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([type, status])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("jobs")
+}
+
+// Enums
+enum SourceType {
+  NEWS
+  BLOG
+  SOCIAL
+  COMMUNITY
+}
+
+enum SourceStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  MAINTENANCE
+}
+
+enum AnalysisType {
+  SENTIMENT
+  KEYWORD
+  SUMMARY
+  POLITICAL
+  ENTITY
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum JobType {
+  CRAWL
+  ANALYSIS
+  CLEANUP
+  EXPORT
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

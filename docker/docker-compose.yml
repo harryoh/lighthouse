@@ -78,6 +78,8 @@ services:
       - PORT=3001
       - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD:-pass}@mysql:3306/lighthouse
       - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - AWS_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test

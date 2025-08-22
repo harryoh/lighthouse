@@ -3,6 +3,8 @@ import cors from 'cors';
 import { prisma, performHealthCheck } from '@lighthouse/database';
 import contentRoutes from './routes/content.routes';
 import queueRoutes from './routes/queue.routes';
+import crawlRoutes from './routes/crawl.routes';
+// import { initializeBullBoard } from './routes/admin/bull-board'; // Temporarily disabled
 import { queueService } from './services/queue.service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
@@ -35,8 +37,12 @@ app.get('/health', async (_req, res) => {
   };
   try {
     const queues = await queueService.getAllQueuesHealth();
+    // Ignore DLQ health for overall status since it's optional
+    const mainQueues = queues.filter(
+      (q) => q.name !== 'dlq' && q.name !== 'dead-letter'
+    );
     queueHealth = {
-      status: queues.every((q) => q.isHealthy) ? 'healthy' : 'unhealthy',
+      status: mainQueues.every((q) => q.isHealthy) ? 'healthy' : 'unhealthy',
       queues,
     };
   } catch {
@@ -68,6 +74,10 @@ app.get('/', (_req, res) => {
       health: '/health',
       contents: '/api/contents',
       queues: '/api/queues',
+      crawl: '/api/crawl',
+      admin: {
+        queues: '/admin/queues',
+      },
     },
   });
 });
@@ -75,6 +85,19 @@ app.get('/', (_req, res) => {
 // API Routes
 app.use('/api/contents', contentRoutes);
 app.use('/api/queues', queueRoutes);
+app.use('/api/crawl', crawlRoutes);
+
+// Admin routes (Bull Board) - temporarily disabled
+// TODO: Fix Bull Board UI package bundling in production
+// if (process.env.NODE_ENV !== 'production') {
+//   try {
+//     const bullBoardRouter = initializeBullBoard();
+//     app.use('/admin/queues', bullBoardRouter);
+//     console.log('✅ Bull Board available at /admin/queues');
+//   } catch (error) {
+//     console.warn('⚠️ Bull Board initialization failed:', error);
+//   }
+// }
 
 // Error handlers (must be last)
 app.use(notFoundHandler);

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Lighthouse API Server",
   "dependencies": {
+    "@bull-board/api": "^6.12.4",
+    "@bull-board/express": "^6.12.4",
+    "@bull-board/ui": "^6.12.4",
     "@prisma/client": "^6.14.0",
     "bullmq": "^5.58.0",
     "cors": "^2.8.5",
