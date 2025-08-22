@@ -11,6 +11,7 @@ export * from './types/news.types';
 export { BaseCrawler } from './crawlers/BaseCrawler';
 export { CrawlerFactory } from './crawlers/CrawlerFactory';
 export { NewsCrawler } from './crawlers/NewsCrawler';
+export { NaverNewsCrawler } from './crawlers/NaverNewsCrawler';
 
 // Export queue interfaces and implementation
 export * from './queue/QueueInterface';
