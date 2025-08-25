@@ -168,3 +168,107 @@ export const validatePagination = (
 
   next();
 };
+
+/**
+ * Validate schedule configuration
+ */
+export const validateScheduleConfig = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const errors: string[] = [];
+  const { id, name, cronExpression, data } = req.body;
+
+  // Required field validation
+  if (!id) errors.push('id is required');
+  if (!name) errors.push('name is required');
+  if (!cronExpression) errors.push('cronExpression is required');
+  if (!data) errors.push('data is required');
+
+  // Cron expression basic format check
+  if (cronExpression) {
+    const parts = cronExpression.split(' ');
+    if (parts.length < 5) {
+      errors.push('Invalid cron expression format');
+    }
+  }
+
+  // Name length constraint
+  if (name && name.length > 255) {
+    errors.push('name must be 255 characters or less');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors,
+    });
+    return;
+  }
+
+  next();
+};
+
+/**
+ * Validate schedule update
+ */
+export const validateScheduleUpdate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const errors: string[] = [];
+  const { cronExpression, enabled, startDate, endDate, maxRuns } = req.body;
+
+  // At least one field should be present
+  const fields = Object.keys(req.body);
+  if (fields.length === 0) {
+    errors.push('At least one field must be provided for update');
+  }
+
+  // Cron expression format check if provided
+  if (cronExpression) {
+    const parts = cronExpression.split(' ');
+    if (parts.length < 5) {
+      errors.push('Invalid cron expression format');
+    }
+  }
+
+  // Boolean validation for enabled
+  if (enabled !== undefined && typeof enabled !== 'boolean') {
+    errors.push('enabled must be a boolean');
+  }
+
+  // Date validation
+  if (startDate) {
+    const date = new Date(startDate);
+    if (isNaN(date.getTime())) {
+      errors.push('Invalid startDate format');
+    }
+  }
+
+  if (endDate) {
+    const date = new Date(endDate);
+    if (isNaN(date.getTime())) {
+      errors.push('Invalid endDate format');
+    }
+  }
+
+  // Number validation for maxRuns
+  if (maxRuns !== undefined && (typeof maxRuns !== 'number' || maxRuns < 1)) {
+    errors.push('maxRuns must be a positive number');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors,
+    });
+    return;
+  }
+
+  next();
+};

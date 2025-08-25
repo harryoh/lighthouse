@@ -408,7 +408,7 @@
               "6.3"
             ],
             "details": "1. Create src/queue/scheduler/JobScheduler.ts class\n2. Implement addScheduledJob() method using queue.add() with repeat option\n3. Parse and validate cron expressions using cron-parser library\n4. Add timezone support with moment-timezone for accurate scheduling\n5. Create getScheduledJobs() to list all repeatable jobs\n6. Implement updateSchedule() to modify existing cron schedules\n7. Add removeScheduledJob() with proper cleanup\n8. Create schedule conflict detection to prevent duplicate schedules\n9. Implement schedule history tracking in database\n10. Add next run time calculation and display utilities\n<info added on 2025-08-22T05:52:06.032Z>\nSetting up crawling test environment and creating sample scripts - Verify Docker environment, create API server startup script, write actual Korean news site crawling test script:\n\n11. Set up crawling test environment by verifying Docker containers are running (MySQL, Redis, LocalStack)\n12. Create docker/scripts/start-crawl-test.sh script to start API server and required services\n13. Write test/crawl-samples/korean-news-test.ts script for testing actual Korean news sites\n14. Target test sites: Naver News (news.naver.com) and Yonhap News (yna.co.kr) \n15. Implement test script with BaseCrawler to fetch article list from main page\n16. Parse and extract article URLs, titles, and publication dates from list page\n17. Test individual article crawling with content extraction (title, body, author, date)\n18. Add rate limiting of 1 request per second to respect server load\n19. Create test result validation to verify extracted data completeness\n20. Generate crawl test report showing success rate, parsing accuracy, and performance metrics\n</info added on 2025-08-22T05:52:06.032Z>",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "Test cron expression parsing, verify scheduled job execution timing, test timezone conversions, validate schedule updates and removals"
           },
           {
@@ -552,7 +552,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-22T05:51:20.831Z",
+      "updated": "2025-08-25T06:56:42.455Z",
       "description": "Tasks for master context"
     }
   }

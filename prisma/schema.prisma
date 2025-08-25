@@ -134,6 +134,56 @@ model Job {
   @@map("jobs")
 }
 
+// Scheduled job configuration
+model ScheduledJob {
+  id             String                     @id @default(cuid())
+  name           String                     @db.VarChar(255)
+  cronExpression String                     @db.VarChar(255)
+  timezone       String                     @default("Asia/Seoul") @db.VarChar(50)
+  enabled        Boolean                    @default(true)
+  jobType        JobType
+  jobData        Json
+  options        Json?
+  startDate      DateTime?
+  endDate        DateTime?
+  maxRuns        Int?
+  runCount       Int                        @default(0)
+  lastRunTime    DateTime?
+  nextRunTime    DateTime?
+  metadata       Json?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  // Relations
+  executions ScheduleExecutionHistory[]
+
+  @@index([enabled, nextRunTime])
+  @@index([jobType])
+  @@index([nextRunTime])
+  @@map("scheduled_jobs")
+}
+
+// Schedule execution history
+model ScheduleExecutionHistory {
+  id            String       @id @default(cuid())
+  scheduleId    String
+  executionTime DateTime
+  completionTime DateTime?
+  status        JobStatus
+  result        Json?
+  error         String?      @db.Text
+  duration      Int?         // in milliseconds
+  attemptNumber Int          @default(1)
+
+  // Relations
+  schedule ScheduledJob @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, executionTime])
+  @@index([status])
+  @@index([executionTime])
+  @@map("schedule_execution_history")
+}
+
 // Enums
 enum SourceType {
   NEWS
@@ -168,6 +218,7 @@ enum JobType {
   ANALYSIS
   CLEANUP
   EXPORT
+  SCHEDULED
 }
 
 enum JobStatus {
