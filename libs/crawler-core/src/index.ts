@@ -29,3 +29,7 @@ export {
 
 // Export job processors
 export * from './queue/processors';
+
+// Export scheduler
+export * from './queue/scheduler/SchedulerInterface';
+export { JobScheduler } from './queue/scheduler/JobScheduler';
