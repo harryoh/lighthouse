@@ -1,4 +1,8 @@
-version: '3.8'
+x-localstack-account: &localstack-account
+  AWS_ENDPOINT: http://localstack:4566
+  AWS_DEFAULT_REGION: ap-northeast-2
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
 
 services:
   mysql:
@@ -48,11 +52,9 @@ services:
       - '4567:4566' # LocalStack Gateway
       - '4572:4571' # External services
     environment:
-      - SERVICES=s3,sqs,sns,dynamodb
-      - DEBUG=0
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
-      - AWS_DEFAULT_REGION=us-east-1
+      <<: *localstack-account
+      SERVICES: s3,sqs,sns,dynamodb
+      DEBUG: 0
     volumes:
       - ./scripts/init-localstack.sh:/docker-entrypoint-initaws.d/init-localstack.sh
     networks:
@@ -74,18 +76,15 @@ services:
     ports:
       - '8000:3001'
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD:-pass}@mysql:3306/lighthouse
-      - REDIS_URL=redis://redis:6379
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - AWS_ENDPOINT=http://localstack:4566
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
-      - AWS_DEFAULT_REGION=us-east-1
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-minimum-32-characters-long}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      <<: *localstack-account
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-pass}@mysql:3306/lighthouse
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-minimum-32-characters-long}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
     depends_on:
       mysql:
         condition: service_healthy
@@ -110,10 +109,11 @@ services:
     ports:
       - '8888:3000'
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - NEXT_PUBLIC_API_URL=http://api:3001
-      - NEXT_PUBLIC_APP_NAME=Lighthouse Admin
+      <<: *localstack-account
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://api:3001
+      NEXT_PUBLIC_APP_NAME: Lighthouse Admin
     depends_on:
       - api
     networks:
