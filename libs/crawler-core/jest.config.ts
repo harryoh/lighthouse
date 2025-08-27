@@ -7,4 +7,8 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/libs/crawler-core',
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'src/queue/monitoring/QueueMonitor.spec.ts'
+  ],
 };

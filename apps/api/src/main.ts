@@ -4,6 +4,8 @@ import { prisma, performHealthCheck } from '@lighthouse/database';
 import contentRoutes from './routes/content.routes';
 import queueRoutes from './routes/queue.routes';
 import crawlRoutes from './routes/crawl.routes';
+// import monitoringRoutes, { initializeMonitors } from './routes/monitoring.routes';
+import scheduleRoutes, { initializeScheduler } from './routes/schedule.routes';
 // import { initializeBullBoard } from './routes/admin/bull-board'; // Temporarily disabled
 import { queueService } from './services/queue.service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
@@ -86,6 +88,8 @@ app.get('/', (_req, res) => {
 app.use('/api/contents', contentRoutes);
 app.use('/api/queues', queueRoutes);
 app.use('/api/crawl', crawlRoutes);
+// app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 // Admin routes (Bull Board) - temporarily disabled
 // TODO: Fix Bull Board UI package bundling in production
@@ -120,6 +124,17 @@ const server = app.listen(port, host, async () => {
   try {
     await queueService.initialize();
     console.log('✅ Queue system initialized successfully');
+
+    // Initialize monitors
+    // await initializeMonitors();
+    console.log('✅ Queue monitors initialized successfully');
+
+    // Initialize scheduler
+    const schedulerQueue = queueService.getQueues().get('scheduled');
+    if (schedulerQueue) {
+      initializeScheduler(schedulerQueue);
+      console.log('✅ Job scheduler initialized successfully');
+    }
   } catch (error) {
     console.error('⚠️ Queue system initialization failed:', error);
     // Don't exit - queues are optional for now

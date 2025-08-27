@@ -33,3 +33,7 @@ export * from './queue/processors';
 // Export scheduler
 export * from './queue/scheduler/SchedulerInterface';
 export { JobScheduler } from './queue/scheduler/JobScheduler';
+
+// Export monitoring
+export * from './queue/monitoring/QueueMonitor';
+export { QueueMonitor } from './queue/monitoring/QueueMonitor';

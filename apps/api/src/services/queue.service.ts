@@ -172,6 +172,41 @@ class QueueService {
     return healthStatuses;
   }
 
+  /**
+   * Get all queues map
+   */
+  getQueues() {
+    if (!this.queueFactory) {
+      throw new Error('Queue system not initialized');
+    }
+
+    const queues = new Map();
+    const queueNames = [
+      'lighthouse-crawl',
+      'lighthouse-analysis',
+      'lighthouse-scheduled',
+      'lighthouse-crawl-dlq',
+      'lighthouse-analysis-dlq',
+      'lighthouse-scheduled-dlq',
+    ];
+
+    for (const name of queueNames) {
+      try {
+        const queue = this.queueFactory.getQueue(name);
+        if (queue) {
+          const simpleName = name
+            .replace('lighthouse-', '')
+            .replace('-dlq', '');
+          queues.set(simpleName, queue);
+        }
+      } catch (error) {
+        // Queue might not exist yet
+      }
+    }
+
+    return queues;
+  }
+
   async getJobs(
     queueName: string,
     status?: string,

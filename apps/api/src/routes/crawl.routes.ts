@@ -9,6 +9,58 @@ import type { CrawlJobData } from '@lighthouse/crawler-core';
 const router = Router();
 
 /**
+ * Simple crawl endpoint - crawl Naver News with minimal configuration
+ * POST /api/crawl
+ * Body: { url?: string }
+ */
+router.post('/', async (req, res, next) => {
+  try {
+    const { url = 'https://news.naver.com/section/100' } = req.body;
+
+    // Create simple job for Naver News crawler
+    const jobData: CrawlJobData = {
+      sourceId: `crawl-${Date.now()}`,
+      source: {
+        id: 'naver-news-simple',
+        name: 'Naver News',
+        url,
+        type: 'NEWS',
+        config: {
+          crawlerType: 'naver',
+          selector: {
+            title: '#title_area span, .media_end_head_headline',
+            content: '#dic_area, #newsEndContents',
+            author: '.byline_s .name, .media_end_head_journalist_name',
+            publishedAt:
+              '.media_end_head_info_datestamp_time, .byline .date_time',
+          },
+          rateLimit: {
+            requests: 3,
+            period: 3000,
+          },
+        },
+      },
+      priority: 8,
+      attempts: 3,
+    };
+
+    const job = await queueService.addCrawlJob(jobData);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Crawl job created successfully',
+      data: {
+        jobId: job.id,
+        sourceUrl: url,
+        checkStatus: `/api/crawl/jobs/${job.id}`,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * Test crawl endpoint - crawl a sample news site
  */
 router.post('/test', async (_req, res, next) => {

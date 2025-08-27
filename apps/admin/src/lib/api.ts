@@ -1,5 +1,5 @@
 // Use a constant for the API URL - in production this would come from env vars
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://localhost:3001';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;

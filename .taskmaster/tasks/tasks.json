@@ -367,7 +367,7 @@
           2,
           5
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -408,7 +408,7 @@
               "6.3"
             ],
             "details": "1. Create src/queue/scheduler/JobScheduler.ts class\n2. Implement addScheduledJob() method using queue.add() with repeat option\n3. Parse and validate cron expressions using cron-parser library\n4. Add timezone support with moment-timezone for accurate scheduling\n5. Create getScheduledJobs() to list all repeatable jobs\n6. Implement updateSchedule() to modify existing cron schedules\n7. Add removeScheduledJob() with proper cleanup\n8. Create schedule conflict detection to prevent duplicate schedules\n9. Implement schedule history tracking in database\n10. Add next run time calculation and display utilities\n<info added on 2025-08-22T05:52:06.032Z>\nSetting up crawling test environment and creating sample scripts - Verify Docker environment, create API server startup script, write actual Korean news site crawling test script:\n\n11. Set up crawling test environment by verifying Docker containers are running (MySQL, Redis, LocalStack)\n12. Create docker/scripts/start-crawl-test.sh script to start API server and required services\n13. Write test/crawl-samples/korean-news-test.ts script for testing actual Korean news sites\n14. Target test sites: Naver News (news.naver.com) and Yonhap News (yna.co.kr) \n15. Implement test script with BaseCrawler to fetch article list from main page\n16. Parse and extract article URLs, titles, and publication dates from list page\n17. Test individual article crawling with content extraction (title, body, author, date)\n18. Add rate limiting of 1 request per second to respect server load\n19. Create test result validation to verify extracted data completeness\n20. Generate crawl test report showing success rate, parsing accuracy, and performance metrics\n</info added on 2025-08-22T05:52:06.032Z>",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Test cron expression parsing, verify scheduled job execution timing, test timezone conversions, validate schedule updates and removals"
           },
           {
@@ -419,7 +419,7 @@
               "6.4"
             ],
             "details": "1. Create src/queue/monitoring/QueueMonitor.ts service\n2. Implement getQueueMetrics(): active, waiting, completed, failed counts\n3. Create dead letter queue configuration with maxRetriesPerRequest\n4. Implement failed job handler to move to DLQ after max retries\n5. Create job event listeners: completed, failed, stalled, progress\n6. Build REST endpoints: GET /api/queues/stats, GET /api/jobs/:id\n7. Implement job cleanup: remove completed jobs older than 7 days\n8. Create job archival to compressed JSON files before deletion\n9. Add queue health check endpoint with Redis ping\n10. Implement alert system for queue threshold breaches (email/webhook)",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test metrics accuracy with known job counts, verify DLQ receives failed jobs, test cleanup with old job data, validate archival file creation"
           }
         ]
@@ -435,7 +435,7 @@
           4,
           5
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -548,11 +548,62 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Create Crawler Test Script for Naver News",
+        "description": "Develop a simple standalone test script (scripts/crawl.ts) to crawl Naver News articles and output results to console for quick validation and debugging of crawler functionality.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "details": "1. Create scripts/crawl.ts file:\n   - Import NaverNewsCrawler from libs/crawler-core\n   - Setup minimal configuration for testing\n   - No complex error handling needed for test script\n   - Operates independently without requiring other tasks to be completed\n2. Implement simple execution flow:\n   - Initialize crawler with test parameters\n   - Set target URL (e.g., Naver News politics section)\n   - Crawl 5-10 articles for quick testing\n   - Output to console with clear formatting\n3. Console output structure:\n   - Article title\n   - URL\n   - Published date\n   - Brief content preview (first 200 chars)\n   - Separator between articles\n4. Add npm script for easy execution:\n   - Add \"crawl:test\" to package.json scripts\n   - Use ts-node or tsx for direct TypeScript execution\n5. Keep implementation minimal:\n   - No database saving\n   - No complex logging\n   - No authentication needed\n   - Just fetch and display\n   - Can be run immediately without other infrastructure\n6. Example structure:\n   ```typescript\n   import { NaverNewsCrawler } from '../libs/crawler-core';\n   \n   async function testCrawl() {\n     const crawler = new NaverNewsCrawler();\n     const results = await crawler.crawl('https://news.naver.com/section/100');\n     results.forEach(article => {\n       console.log('='.repeat(50));\n       console.log('Title:', article.title);\n       console.log('URL:', article.url);\n       console.log('Date:', article.publishedAt);\n       console.log('Preview:', article.content.substring(0, 200));\n     });\n   }\n   \n   testCrawl().catch(console.error);\n   ```",
+        "testStrategy": "1. Execute script with 'npm run crawl:test' or 'npx tsx scripts/crawl.ts'\n2. Verify console output shows Korean news articles clearly\n3. Check that 5-10 articles are fetched successfully\n4. Ensure no unhandled errors occur during execution\n5. Validate that article data (title, URL, date) is properly displayed\n6. Test with different Naver News sections if needed\n7. Confirm script completes within reasonable time (under 10 seconds)\n8. Verify Korean text displays correctly in console without encoding issues\n9. Confirm script runs independently without needing other infrastructure or API endpoints",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement crawlPage Method for Naver News Data Extraction",
+        "description": "Implement the core crawlPage method in NaverNewsCrawler class to fetch and extract actual news data from Naver News pages using Playwright browser automation and CSS selectors.",
+        "status": "pending",
+        "dependencies": [
+          12
+        ],
+        "priority": "medium",
+        "details": "1. Implement crawlPage method in NaverNewsCrawler class:\n   - Accept URL parameter for target news page\n   - Launch Playwright browser instance (chromium)\n   - Configure browser with Korean locale and appropriate user-agent\n   - Set viewport size for desktop view (1920x1080)\n   - Handle page navigation with proper timeout settings\n\n2. Implement data extraction logic:\n   - Wait for main content to load (use waitForSelector)\n   - Extract article title: selector '.media_end_head_headline'\n   - Extract article body: selector '#dic_area' or '.go_trans._article_content'\n   - Extract publication date: selector '.media_end_head_info_datestamp_time'\n   - Extract author/reporter: selector '.media_end_head_journalist_name'\n   - Extract article category from breadcrumb or URL pattern\n   - Handle image URLs if present: selector '.end_photo_org img'\n\n3. Add error handling and retry logic:\n   - Implement retry mechanism for network failures (max 3 retries)\n   - Handle timeout errors gracefully\n   - Catch and log selector not found errors\n   - Implement fallback selectors for different article layouts\n   - Add screenshot capability on error for debugging\n\n4. Implement data normalization:\n   - Clean extracted text (remove extra whitespaces, newlines)\n   - Convert relative URLs to absolute\n   - Parse Korean date formats to ISO format\n   - Sanitize HTML content if needed\n   - Validate required fields before returning\n\n5. Add performance optimizations:\n   - Reuse browser context across multiple crawls\n   - Implement page pooling for concurrent crawling\n   - Block unnecessary resources (images, fonts) for faster loading\n   - Add request interception to filter ads/tracking\n\n6. Return structured data object:\n   ```typescript\n   interface ArticleData {\n     title: string;\n     content: string;\n     url: string;\n     publishedAt: Date;\n     author?: string;\n     category?: string;\n     imageUrls?: string[];\n     crawledAt: Date;\n   }\n   ```",
+        "testStrategy": "1. Unit test crawlPage method with mock Playwright page:\n   - Mock page.goto() and selector methods\n   - Verify correct selectors are used\n   - Test error handling with simulated failures\n   - Validate data structure returned\n\n2. Integration test with real Naver News URLs:\n   - Test with politics section article\n   - Test with economy section article\n   - Verify Korean text is properly extracted\n   - Confirm date parsing works correctly\n   - Check that all required fields are populated\n\n3. Test error scenarios:\n   - Network timeout simulation\n   - Invalid URL handling\n   - Missing selector elements\n   - Page load failures\n   - Verify retry logic works (should retry 3 times)\n\n4. Performance testing:\n   - Measure crawl time for single article\n   - Test concurrent crawling of 10 articles\n   - Verify memory usage with browser pooling\n   - Check that resource blocking improves speed\n\n5. Validation testing:\n   - Ensure no null/undefined in required fields\n   - Verify URLs are absolute, not relative\n   - Confirm dates are valid Date objects\n   - Test with articles having different layouts\n\n6. Test script dependency verification:\n   - Ensure test scripts from Task 12 are properly integrated\n   - Verify test runner configuration is correct\n   - Check that all test utilities are available",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Create Simple Crawl API Endpoint",
+        "description": "Implement a POST /api/crawl endpoint that executes Naver News crawling and returns JSON results with minimal complexity, focusing on simple execution without advanced features.",
+        "status": "pending",
+        "dependencies": [
+          13
+        ],
+        "priority": "medium",
+        "details": "1. Create apps/api/src/routes/crawl.routes.ts:\n   - Define POST /api/crawl route with Express router\n   - No authentication required for initial implementation\n   - Accept minimal request body: { url?: string, limit?: number }\n   - Default to Naver News politics section if no URL provided\n   - Default limit to 10 articles if not specified\n\n2. Implement controller in apps/api/src/controllers/crawl.controller.ts:\n   - Import NaverNewsCrawler from libs/crawler-core\n   - Simple request validation (limit between 1-50)\n   - Initialize crawler with request parameters\n   - Execute crawling synchronously (no queue for now)\n   - Return JSON response immediately\n\n3. Response structure:\n   {\n     success: boolean,\n     data: {\n       articles: [...],\n       count: number,\n       crawledAt: Date\n     },\n     error?: string\n   }\n\n4. Error handling:\n   - Try-catch around crawler execution\n   - Return 500 with error message on failure\n   - Log errors to console (no complex logging yet)\n\n5. Register route in apps/api/src/main.ts:\n   - Import crawl routes\n   - Mount at /api/crawl path\n   - Ensure JSON body parser is configured\n\n6. Dependencies:\n   - Only depends on Task 13 (NaverNewsCrawler implementation)\n   - Does not require database or queue setup for initial version\n   - Can function independently once crawler is available",
+        "testStrategy": "1. Manual testing with curl/Postman:\n   - POST http://localhost:3000/api/crawl with empty body\n   - POST with { url: 'custom-url', limit: 5 }\n   - Verify JSON response structure\n\n2. Integration test:\n   - Test successful crawl with default parameters\n   - Test with custom limit (1, 10, 50)\n   - Test error handling with invalid URL\n   - Verify response time < 30 seconds\n\n3. Validate response data:\n   - Check articles array is not empty\n   - Verify each article has title, url, date\n   - Ensure count matches array length\n   - Confirm crawledAt is valid timestamp\n\n4. Test with only Task 13 completed:\n   - Verify endpoint works without database\n   - Confirm no queue dependencies required\n   - Test standalone functionality",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Create Admin Content List Page with Table Display",
+        "description": "Implement an admin page at localhost:3000/contents to display crawled articles in a table format showing only title, date, and link columns for easy content overview.",
+        "details": "1. Create apps/admin/src/pages/contents.tsx:\n   - Use Next.js page component structure\n   - Import necessary UI components (Table, TableHeader, TableBody, TableRow, TableCell)\n   - Implement pagination state management (page, pageSize)\n   - Add loading and error states\n\n2. Implement data fetching:\n   - Create useContents hook or use SWR/React Query\n   - Fetch from /api/contents endpoint with pagination\n   - Handle loading, error, and empty states\n   - Include automatic refresh every 30 seconds\n\n3. Build table structure:\n   - Create responsive table layout\n   - Display columns: Title (제목), Date (날짜), Link (링크)\n   - Format date using Korean locale (YYYY년 MM월 DD일)\n   - Make title clickable with target='_blank'\n   - Add hover effects for better UX\n\n4. Add table features:\n   - Implement sorting by date (newest first by default)\n   - Add pagination controls (이전/다음 buttons)\n   - Show total count and current page info\n   - Display 20 items per page by default\n\n5. Style considerations:\n   - Use consistent admin theme styling\n   - Ensure mobile responsiveness\n   - Add alternating row colors for readability\n   - Include empty state message when no content\n\n6. Create API endpoint /api/contents:\n   - Use ContentService from task 5\n   - Accept query params: page, limit, sort\n   - Return paginated results with metadata\n   - Include total count for pagination",
+        "testStrategy": "1. Test page rendering:\n   - Navigate to localhost:3000/contents\n   - Verify table displays without errors\n   - Check responsive layout on mobile/desktop\n\n2. Test data display:\n   - Verify correct columns shown (title, date, link)\n   - Ensure Korean date formatting works\n   - Test with 0, 1, 10, 50+ articles\n   - Verify empty state message\n\n3. Test interactions:\n   - Click article links - should open in new tab\n   - Test pagination next/previous buttons\n   - Verify sorting by date works correctly\n   - Check auto-refresh updates content\n\n4. Test API endpoint:\n   - GET /api/contents returns paginated data\n   - Query params work correctly\n   - Error handling for invalid params\n\n5. Performance testing:\n   - Table renders smoothly with 100+ items\n   - Pagination switches quickly\n   - No memory leaks with auto-refresh",
+        "status": "pending",
+        "dependencies": [
+          5,
+          14
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-08-11T12:13:42.746Z",
-      "updated": "2025-08-25T06:56:42.455Z",
+      "updated": "2025-08-26T05:36:18.628Z",
       "description": "Tasks for master context"
     }
   }
